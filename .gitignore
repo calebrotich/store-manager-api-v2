@@ -57,7 +57,6 @@ local_settings.py
 db.sqlite3
 
 # Flask stuff:
-instance/
 .webassets-cache
 
 # Scrapy stuff:
@@ -102,3 +101,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# vscode folders
+.vscode/

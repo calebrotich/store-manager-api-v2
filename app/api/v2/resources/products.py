@@ -85,7 +85,7 @@ class SpecificProduct(Resource):
         if not fetched_product:
             return make_response(jsonify({
             "message": "Product with id {} is not available".format(product_id),
-            }), 400)
+            }), 404)
         
         return make_response(jsonify({
             "message": "{} retrieved successfully".format(fetched_product[0][1]),
@@ -117,18 +117,19 @@ class SpecificProduct(Resource):
         striped_category = data['category'].strip()
         validator.Validator.check_duplication("product_name", "products", striped_product_name)
 
-        try:
-            product = products.Products(product_id=product_id, product_name=striped_product_name,
-                                        product_price=data['product_price'], category=striped_category)
-            product.put()
-            return make_response(jsonify({
-                "message":"Product updated successfully",
-                "product": data
-            }), 202)
-        except:
-            return make_response(jsonify({
-                "message":"We experienced a problem with the database, login again and re-try"
-            }), 500)
+        product = products.Products(product_id=product_id, product_name=striped_product_name,
+                                    product_price=data['product_price'], category=striped_category)
+        product.put()
+        return make_response(jsonify({
+            "message":"Product updated successfully",
+            "product": data
+        }), 202)
 
 
+    def delete(self, product_id):
+        product = products.Products(product_id=product_id)
+        product.delete()
 
+        return make_response(jsonify({
+            "message": "Product deleted successfully"
+        }), 200)

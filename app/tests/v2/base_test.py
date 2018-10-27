@@ -56,13 +56,29 @@ class TestBaseClass(unittest.TestCase):
         self.app_context.pop()
 
     def register_test_admin_account(self):
-        #Register attendant
+        #Register admin
         """Registers an admin test user account"""
             
         res = self.app_test_client.post("api/v2/auth/signup",
         json={
         "email": "user@gmail.com",
         "role": "admin",
+        "password": "Password12#"
+        }, 
+        headers={
+        "Content-Type": "application/json"
+        })
+
+        return res
+
+    def register_test_attendant_account(self):
+        #Register attendant
+        """Registers an attendant test user account"""
+            
+        res = self.app_test_client.post("api/v2/auth/signup",
+        json={
+        "email": "attendant@gmail.com",
+        "role": "attendant",
         "password": "Password12#"
         }, 
         headers={
@@ -78,6 +94,24 @@ class TestBaseClass(unittest.TestCase):
         resp = self.app_test_client.post("api/v2/auth/login",
         json={
             "email": "user@gmail.com",
+            "password": "Password12#"
+        },
+        headers={
+        "Content-Type": "application/json"
+        })
+
+        auth_token = common_functions.convert_response_to_json(
+        resp)['token']
+
+        return auth_token
+
+    def login_test_attendant(self):
+        """Validates the test account for the attendant"""
+
+        # Login the test account for the admin
+        resp = self.app_test_client.post("api/v2/auth/login",
+        json={
+            "email": "attendant@gmail.com",
             "password": "Password12#"
         },
         headers={

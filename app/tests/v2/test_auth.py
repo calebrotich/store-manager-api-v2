@@ -7,6 +7,7 @@ import json
 
 from . import base_test
 from . import common_functions
+from app.api.v2 import database
 
 class TestAuth(base_test.TestBaseClass):
     """ Class contains tests for auth endpoints """
@@ -27,6 +28,22 @@ class TestAuth(base_test.TestBaseClass):
         self.assertEqual(common_functions.convert_response_to_json(
             response)["Message"], "You need to login")
 
+    def test_missing_token_user(self):
+        """Test GET /products - when user who generated token is missing"""
+
+        self.register_test_admin_account()
+        token = self.login_test_admin()
+
+        query = """DELETE FROM users"""
+        database.insert_to_db(query)
+
+        response = self.app_test_client.post('{}/products'.format(
+            self.BASE_URL), json=self.PRODUCT, headers=dict(Authorization=token),
+            content_type='application/json')
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)["message"], "The token is invalid since it is not associated to any account")
 
     def test_invalid_token(self):
         """Test GET /products - when token is missing"""

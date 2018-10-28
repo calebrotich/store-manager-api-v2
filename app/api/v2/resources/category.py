@@ -39,3 +39,22 @@ class ProductCategory(Resource):
                 "category_name": category_name
             }
         }), 201)
+
+
+    def get(self):
+        """GET /category"""
+        verify.verify_tokens()
+
+        fetch_category = category.Category()
+        fetched_categories = fetch_category.get()
+
+        if not fetched_categories:
+            return make_response(jsonify({
+                "message": "No categories created yet"
+            }), 404)
+
+        response = make_response(jsonify({
+            "message": "Categories fetched successfully"
+        }), 200)
+
+        return response

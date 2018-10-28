@@ -62,3 +62,25 @@ class TestCategory(base_test.TestBaseClass):
         self.assertEqual(response.status_code, 202)
         self.assertEqual(common_functions.convert_response_to_json(
             response)['category']['category_name'], "Farm Tools")
+
+
+    def test_delete_category(self):
+        """DELETE /category/id"""
+
+        self.register_test_admin_account()
+        token = self.login_test_admin()
+
+        query = """INSERT INTO category(category_name) VALUES('Tools')""" 
+        database.insert_to_db(query)
+
+        query = """SELECT category_id FROM category WHERE category_name = 'Tools'"""
+        category_id = database.select_from_db(query)
+
+        response = self.app_test_client.delete('{}/category/{}'.format(
+            self.BASE_URL, category_id[0][0]),
+            headers=dict(Authorization=token),
+            content_type='application/json')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)['message'], "Category deleted successfully")

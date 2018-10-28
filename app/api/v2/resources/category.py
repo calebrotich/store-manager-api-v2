@@ -7,7 +7,7 @@ from flask_restful import Resource
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from . import common_functions
-from ..models import products, sale_orders, users, category
+from ..models import products, saleorders, users, category
 from ..utils import verify, validator
 from .. import database
 

@@ -4,7 +4,7 @@ from datetime import datetime
 
 from flask import abort, jsonify, make_response
 
-from ..models import products, sale_orders, users
+from ..models import products, saleorders, users
 from .. import database
 
 def no_json_in_request(data):

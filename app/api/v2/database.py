@@ -57,7 +57,14 @@ def create_tables():
         amount INTEGER NOT NULL
     )"""
 
-    return [users_table_query, products_table_query, sales_order_query]
+    category_query = """
+    CREATE TABLE category (
+        category_id SERIAL PRIMARY KEY,
+        category_name VARCHAR (24) NOT NULL,
+        date_added TIMESTAMP DEFAULT NOW()
+    )"""
+
+    return [users_table_query, products_table_query, sales_order_query, category_query]
 
 
 def drop_table_if_exists():
@@ -72,7 +79,10 @@ def drop_table_if_exists():
     drop_users_table = """
     DROP TABLE IF EXISTS users"""
 
-    return [drop_products_table, drop_sales_table, drop_users_table]
+    drop_category_table = """
+    DROP TABLE IF EXISTS category"""
+
+    return [drop_products_table, drop_sales_table, drop_users_table, drop_category_table]
 
 
 def query_database(query=None, db_url=None):

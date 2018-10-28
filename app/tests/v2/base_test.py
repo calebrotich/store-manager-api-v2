@@ -45,6 +45,9 @@ class TestBaseClass(unittest.TestCase):
         'amount': (55000 * 6)
         }
 
+        self.CATEGORY = {
+        'category_name': 'Tools'
+        }
 
     def tearDown(self):
         """Destroy the application that

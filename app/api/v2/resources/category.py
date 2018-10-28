@@ -54,7 +54,45 @@ class ProductCategory(Resource):
             }), 404)
 
         response = make_response(jsonify({
-            "message": "Categories fetched successfully"
+            "message": "Categories fetched successfully",
+            "categories": fetched_categories
         }), 200)
 
         return response
+
+class SpecificCategory(Resource):
+    """Handles CRUD on a specific category"""
+
+
+    def put(self, category_id):
+        """PUT /product/<int:product_id> endpoint"""
+
+        logged_user = verify.verify_tokens()
+        common_functions.abort_if_user_is_not_admin(logged_user)
+
+        data = request.get_json()
+        try:
+            category_name = data['category_name']
+
+        except:
+            return make_response(jsonify({
+                "message": "Pass update data for category name"
+            }), 403)
+            
+        common_functions.no_json_in_request(data)
+        # verify.verify_post_product_fields(product_price, product_name, category)
+        try:
+            striped_category_name = category_name.strip()
+        except:
+            return make_response(jsonify({
+                "message": "Category name should be a string"
+            }), 403)
+
+        validator.Validator.check_duplication("category_name", "category", striped_category_name)
+
+        update_category = category.Category(category_id=category_id, category_name=striped_category_name)
+        update_category.put()
+        return make_response(jsonify({
+            "message":"Product updated successfully",
+            "category": data
+        }), 202)

@@ -7,7 +7,7 @@ from flask_restful import Resource
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from . import common_functions
-from ..models import products, sale_orders, users, category
+from ..models import products, saleorders, users, category
 from ..utils import verify, validator
 from .. import database
 
@@ -96,3 +96,12 @@ class SpecificCategory(Resource):
             "message":"Product updated successfully",
             "category": data
         }), 202)
+
+
+    def delete(self, category_id):
+            fetch_category = category.Category(category_id=category_id)
+            fetch_category.delete()
+
+            return make_response(jsonify({
+                "message": "Category deleted successfully"
+            }), 200)

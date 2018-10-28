@@ -93,7 +93,7 @@ class TestAuth(base_test.TestBaseClass):
         self.assertEqual(data['message'], "Missing required credentials")
         self.assertEqual(res.status_code, 400)
 
-    def test_add_new_user_missing_params(self):
+    def test_add_new_user_missing_data(self):
         res = self.app_test_client.post("api/v2/auth/signup",
         json={
             "email": "",
@@ -108,6 +108,22 @@ class TestAuth(base_test.TestBaseClass):
         print(data)
 
         self.assertEqual(data['message'], "You are missing a required credential")
+        self.assertEqual(res.status_code, 400)
+
+    def test_add_new_user_missing_key(self):
+        res = self.app_test_client.post("api/v2/auth/signup",
+        json={
+            "role": "Admin",
+            "password": "Password12#"
+             }, 
+        headers={
+            "Content-Type": "application/json"
+            })
+
+        data = json.loads(res.data.decode())
+        print(data)
+
+        self.assertEqual(data['message'], "Missing required credentials")
         self.assertEqual(res.status_code, 400)
 
     def test_add_new_user_invalid_email(self):
@@ -281,4 +297,19 @@ class TestAuth(base_test.TestBaseClass):
         self.assertTrue(common_functions.convert_response_to_json(
         resp)['message'], "User not found.")
         self.assertEqual(resp.status_code, 404)
+
+    def test_abort_if_user_is_not_admin(self):
+        self.register_test_admin_account()
+        self.register_test_attendant_account()
+        token = self.login_test_attendant()
+
+        response = self.app_test_client.post('{}/products'.format(
+            self.BASE_URL), json={
+                'product_id': 1, 'product_name': "Hammer", 'product_price': 200, 'category': 200
+                }, headers=dict(Authorization=token),
+                content_type='application/json')
+
+        self.assertTrue(common_functions.convert_response_to_json(
+        response)['message'], "Unauthorized. This action is not for you")
+        self.assertEqual(response.status_code, 401)
     

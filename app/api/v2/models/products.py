@@ -20,18 +20,6 @@ class Products():
 
         database.insert_to_db(query)
 
-    def fetch_product_by_name(self):
-        """Queries db for a product
-
-        based on it's product name
-        """
-        # Query db for user with those params
-        query = """
-        SELECT * FROM products
-        WHERE product_name = '{}'""".format(self.product_name)
-
-        return database.select_from_db(query)
-
     def fetch_all_products(self):
         """Fetches all products from
 

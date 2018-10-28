@@ -5,7 +5,7 @@ from flask_restful import Resource
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from . import common_functions
-from ..models import products, sale_orders
+from ..models import products, saleorders
 from ..utils import verify
 from .. import database
 
@@ -51,7 +51,7 @@ class SaleOrder(Resource):
                 message="Bad request. The quantity should be specified in digits"
             ), 400))
         strip_product_name = product_name.strip()
-        sale_order = sale_orders.SaleOrder(strip_product_name, product_price, quantity)
+        sale_order = saleorders.SaleOrder(strip_product_name, product_price, quantity)
         sale_order.save()
 
         return make_response(jsonify({
@@ -70,16 +70,16 @@ class SaleOrder(Resource):
 
         verify.verify_tokens()
         
-        query = """SELECT * FROM saleorders"""
-        saleorders = database.select_from_db(query)
-        if not saleorders:
+        saleorder = saleorders.SaleOrder()
+        get_saleorder = saleorder.get()
+        if not get_saleorder:
             return jsonify({
             'message': "No sale orders created yet"
             })
 
         response = jsonify({
             'message': "Successfully fetched all the sale orders",
-            'sale_orders': saleorders
+            'sale_orders': get_saleorder
             })
         response.status_code = 200
         return response

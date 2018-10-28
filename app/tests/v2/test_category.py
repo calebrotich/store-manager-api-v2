@@ -22,4 +22,19 @@ class TestCategory(base_test.TestBaseClass):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(common_functions.convert_response_to_json(
             response)["message"], "Category created successfully")
+
+
+    def test_get_all_categories(self):
+        self.register_test_admin_account()
+        token = self.login_test_admin()
+        query = """INSERT INTO category(category_name) VALUES('Tools')"""
+        
+        database.insert_to_db(query)
+        response = self.app_test_client.get("{}/category".format(
+            self.BASE_URL), headers=dict(Authorization=token),
+            content_type='application/json')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)["message"], "Categories fetched successfully")
             

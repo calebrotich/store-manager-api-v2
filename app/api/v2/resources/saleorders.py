@@ -73,9 +73,9 @@ class SaleOrder(Resource):
         saleorder = saleorders.SaleOrder()
         get_saleorder = saleorder.get()
         if not get_saleorder:
-            return jsonify({
+            return make_response(jsonify({
             'message': "No sale orders created yet"
-            })
+            }), 404)
 
         response = jsonify({
             'message': "Successfully fetched all the sale orders",

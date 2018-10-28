@@ -145,7 +145,6 @@ class TestSaleOrder(base_test.TestBaseClass):
 
         query = """SELECT saleorder_id FROM saleorders WHERE product_name = 'Test Product'"""
         saleorder_id = database.select_from_db(query)
-        print(saleorder_id[0][0])
         response = self.app_test_client.get(
             '{}/saleorder/{}'.format(self.BASE_URL, saleorder_id[0][0]),
             headers=dict(Authorization=token),
@@ -153,6 +152,20 @@ class TestSaleOrder(base_test.TestBaseClass):
             )
 
         self.assertEqual(response.status_code, 200)
+
+    def test_retrieve_specific_sale_order_not_found(self):
+        """Test GET /saleorder/id - when saleorder exists"""
+
+        self.register_test_admin_account()
+        token = self.login_test_admin()
+
+        response = self.app_test_client.get(
+            '{}/saleorder/100'.format(self.BASE_URL),
+            headers=dict(Authorization=token),
+            content_type='application/json'
+            )
+
+        self.assertEqual(response.status_code, 404)
 
 
     def test_fetch_sale_orders(self):
@@ -182,3 +195,20 @@ class TestSaleOrder(base_test.TestBaseClass):
             response)['sale_orders'][0][2], "Test Product")
         self.assertEqual(common_functions.convert_response_to_json(
            response)['sale_orders'][0][3], 20)
+
+
+    def test_fetch_sale_orders_no_data(self):
+        """Test GET /saleorder - when sale order exists"""
+        self.register_test_admin_account()
+        token = self.login_test_admin()
+                                                                
+        response = self.app_test_client.get(
+            '{}/saleorder'.format(self.BASE_URL),
+
+            headers=dict(Authorization=token),
+            content_type='application/json'
+        )
+        
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)['message'], "No sale orders created yet")

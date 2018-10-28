@@ -96,3 +96,12 @@ class SpecificCategory(Resource):
             "message":"Product updated successfully",
             "category": data
         }), 202)
+
+
+    def delete(self, category_id):
+            fetch_category = category.Category(category_id=category_id)
+            fetch_category.delete()
+
+            return make_response(jsonify({
+                "message": "Category deleted successfully"
+            }), 200)

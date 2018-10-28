@@ -69,6 +69,24 @@ class TestProduct(base_test.TestBaseClass):
             response)['message'],
             'Price of the product should be a positive integer above 0.')
 
+    def test_add_new_product_price_not_integer(self):
+        """Test POST /products
+
+        with the price of the product below minimum
+        """
+        self.register_test_admin_account()
+        token = self.login_test_admin()
+
+        response = self.app_test_client.post('{}/products'.format(
+            self.BASE_URL), json={
+                'product_id': 1, 'product_name': "Hammer", 'product_price': "string", 'category':'Tools'
+                }, headers=dict(Authorization=token),
+                content_type='application/json')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)['message'],
+            'Product price should be an integer')
 
     def test_add_new_product_with_product_name_not_string(self):
         """Test POST /products
@@ -282,3 +300,18 @@ class TestProduct(base_test.TestBaseClass):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(common_functions.convert_response_to_json(
             response)['message'], "Product deleted successfully")
+
+
+    def test_non_json_data(self):
+        """Test POST /products"""
+        self.register_test_admin_account()
+        token = self.login_test_admin()
+
+        # send a dummy data response for testing
+        response = self.app_test_client.post('{}/products'.format(
+            self.BASE_URL), json=self.PRODUCT, headers=dict(Authorization=token),
+            content_type='application/text')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)['message'], 'Request data must be in json format')

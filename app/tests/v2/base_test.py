@@ -3,13 +3,14 @@
     other test classes
 """
 import unittest
+import os
 
 # local imports
 from app import create_app
 from instance.config import config
 from . import common_functions
-from ...api.v2.database import init_db
-from instance.config import config
+from ...api.v2.database import init_db, drop_table_if_exists
+from app.api.v2 import database
 
 
 class TestBaseClass(unittest.TestCase):
@@ -21,7 +22,7 @@ class TestBaseClass(unittest.TestCase):
 
         for testing purposes
         """
-        self.app = create_app('testing')
+        self.app = create_app(os.getenv('FLASK_ENV'))
         self.BASE_URL = 'api/v2'
         self.app_context = self.app.app_context()
         self.app_context.push()
@@ -35,19 +36,21 @@ class TestBaseClass(unittest.TestCase):
         self.PRODUCT = {
         'product_name': 'Phone Model 1',
         'product_price': 55000,
-        'category': 'Phones'
+        'min_quantity': 10,
+        'inventory': 50,
+        'added_by': 'user@gmail.com',
+        'category': self.create_product_category()
         }
 
         self.SALE_ORDERS = {
-        'product_name': 'Phone Model 1',
-        'product_price': 55000,
-        'quantity': 6,
-        'amount': (55000 * 6)
+        'items': [
+            {
+                'product_name': 'Phone Model 1',
+                'quantity': 2
+            }
+        ]
         }
 
-        self.CATEGORY = {
-        'category_name': 'Tools'
-        }
 
     def tearDown(self):
         """Destroy the application that
@@ -57,6 +60,15 @@ class TestBaseClass(unittest.TestCase):
         with self.app.app_context():
             init_db(self.db_url)
         self.app_context.pop()
+
+    def create_product_category(self):
+        query = """INSERT INTO category (category_name) VALUES ('Tools')"""
+        database.insert_to_db(query)
+
+        fetch_query = """SELECT * FROM category WHERE category_name = 'Tools'"""
+        category_name = database.select_from_db(fetch_query)
+
+        return category_name[0]['category_name']
 
     def register_test_admin_account(self):
         #Register admin
@@ -92,7 +104,8 @@ class TestBaseClass(unittest.TestCase):
     
     def login_test_admin(self):
         """Validates the test account for the admin"""
-
+        self.register_test_admin_account()
+        
         # Login the test account for the admin
         resp = self.app_test_client.post("api/v2/auth/login",
         json={

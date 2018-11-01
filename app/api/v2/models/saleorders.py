@@ -8,19 +8,46 @@ from flask import jsonify
 from .. import database
 
 class SaleOrder():
-    def __init__(self, product_name=None, product_price=None, quantity=None):
-        self.product_name = product_name
-        self.product_price = product_price
-        self.quantity = quantity
-        self.date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    def __init__(self, saleorder_id=None, amount=None, made_by=None):
+        self.amount = amount
+        self.made_by = made_by
+        self.saleorder_id = saleorder_id
 
     def save(self):
-        amount = (self.quantity * self.product_price)
-
         query = """
-        INSERT INTO saleorders(product_name, product_price, quantity, amount, date_ordered) VALUES(
-            '{}', '{}', '{}', '{}', '{}'
-        )""".format(self.product_name, self.product_price, self.quantity, amount, self.date)
+        INSERT INTO saleorders(amount, made_by) VALUES(
+            {}, '{}'
+        )""".format(self.amount, self.made_by)
+
+        database.insert_to_db(query)
+
+    def get(self):
+        """
+            Queries db for user with given username
+            Returns user object
+        """
+        # Query db for user with those params
+        query = """
+        SELECT * FROM saleorders"""
+
+        return database.select_from_db(query)
+
+    def rollback_saleorder(self):
+        query = """DELETE FROM saleorders WHERE saleorder_id = {}""".format(self.saleorder_id)
+        database.insert_to_db(query)
+    
+
+class SaleItems():
+    def __init__(self, saleorder_id=None, product=None, quantity=None):
+        self.product = product
+        self.saleorder_id = saleorder_id
+        self.quantity = quantity
+
+    def save(self):
+        query = """
+        INSERT INTO saleitems(saleorder_id, product, quantity) VALUES(
+            {}, {}, {}
+        )""".format(self.saleorder_id, self.product, self.quantity)
 
         database.insert_to_db(query)
 

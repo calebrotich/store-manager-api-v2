@@ -3,18 +3,21 @@ import os
 
 class Config(object):
     """Parent configuration class."""
-    DEBUG = True
+    DEBUG = False
 
 
 class Development(Config):
     """Configurations for Development."""
     DEBUG = True
+    DB_URL = "dbname='storemanager' host='localhost' port='5432' user='postgres' password='Password12#'"
+
 
 
 class Testing(Config):
     """Configurations for Testing, with a separate test database."""
     TESTING = True
     DEBUG = True
+    DB_URL = "dbname='storemanagertest' host='localhost' port='5432' user='postgres' password='Password12#'"
 
 class Staging(Config):
     """Configurations for Staging."""
@@ -25,7 +28,6 @@ class Production(Config):
     """Configurations for Production."""
     DEBUG = False
     TESTING = False
-
 
 config = {
     'development': Development,

@@ -29,14 +29,14 @@ def missing_a_required_parameter():
 
 
 def abort_if_user_is_not_admin(user):
-    try:
-        query = """SELECT role FROM users WHERE email = '{}'""".format(user)
-        user_role = database.select_from_db(query)
-        if user_role[0][0] != "admin":
-            abort(make_response(jsonify(
-                message="Unauthorized. This action is not for you"
-            ), 401))
-    except:
-        abort(make_response(jsonify(
-            message="The token is invalid since it is not associated to any account"
+    query = """SELECT role FROM users WHERE email = '{}'""".format(user)
+    user_role = database.select_from_db(query)
+    print(user_role)
+    if user_role and user_role[0]['role'] != "admin":
+        return abort(make_response(jsonify(
+            message="Unauthorized. This action is not for you"
         ), 401))
+    elif not user_role:
+        return abort(make_response(jsonify(
+            message="The token is invalid since it is not associated to any account"
+         ), 406))

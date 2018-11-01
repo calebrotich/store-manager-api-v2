@@ -7,10 +7,11 @@ from flask import make_response, jsonify
 from .. import database
 
 class User_Model():
-    def __init__(self, email, password, role):
+    def __init__(self, email=None, password=None, role=None, token=None):
         self.email = email
         self.password = password
         self.role = role
+        self.token = token
 
     def save(self):
         query = """
@@ -19,6 +20,13 @@ class User_Model():
         )""".format(self.email, self.role, self.password)
 
         database.insert_to_db(query)
+
+    def logout(self):
+        query = """
+        INSERT INTO blacklist (token) VALUES ('{}')
+        """.format(self.token)
+
+        return database.insert_to_db(query)
 
     @staticmethod
     def fetch_user(email):

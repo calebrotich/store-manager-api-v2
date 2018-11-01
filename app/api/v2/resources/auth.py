@@ -16,6 +16,7 @@ from flask_jwt_extended import (
 from instance import config
 from ..utils.validator import Validator
 from ..models import users
+from ..utils import verify
 
 class SignUp(Resource):
     """Signup class"""
@@ -69,10 +70,10 @@ class Login(Resource):
         user = users.User_Model.fetch_user(request_email)
         if not user:
             abort(make_response(jsonify(
-                message="User not found."), 404))
+                message="User registered with that e-mail is not found."), 404))
 
-        user_email = user[0][1]
-        user_password = user[0][2]
+        user_email = user[0]['email']
+        user_password = user[0]['password']
 
         if request_email == user_email and check_password_hash(user_password, request_password):
             token = jwt.encode({
@@ -84,6 +85,22 @@ class Login(Resource):
                             "token": token.decode("UTF-8")}), 200)
 
         return make_response(jsonify({
-            "message": "Wrong credentials provided"
+            "message": "Try again. Incorrect password!"
         }
         ), 403)
+
+
+class Logout(Resource):
+    """Logout class"""
+
+    def post(self):
+        """POST /auth/logout"""
+        
+        logged_user = verify.verify_tokens()
+        token = request.headers['Authorization']
+        user = users.User_Model(token=token)
+        user.logout()
+
+        return make_response(jsonify({
+            'message': '{} Logged out successfully'.format(logged_user)
+        }))

@@ -4,18 +4,26 @@ Creates tables for the application
 """
 
 import sys
+import os
 
 import psycopg2
+import psycopg2.extras
 from instance.config import config
 
 def init_db(db_url=None):
     """Initialize db connection
         
     Run queries that set up tables
-    """
+    """        
     try:
-        conn, cursor = query_database()
-        queries = drop_table_if_exists() + create_tables()
+        if os.getenv('FLASK_ENV') == 'testing':
+            conn, cursor = query_database()
+            queries = drop_table_if_exists() + create_tables()
+            
+        else:
+            conn, cursor = query_database()
+            queries = create_tables()
+
         i = 0
         while i != len(queries):
             query = queries[i]
@@ -25,54 +33,86 @@ def init_db(db_url=None):
         conn.close()
 
     except Exception as error:
-        print("\nQuery not executed : {} \n".format(error))
+        print("Query not executed : {} \n".format(error))
 
 
 def create_tables():
     """Queries for setting up the database tables"""
 
     users_table_query = """
-    CREATE TABLE users (
+    CREATE TABLE IF NOT EXISTS users  (
         user_id SERIAL PRIMARY KEY,
         email VARCHAR (30) NOT NULL UNIQUE,
         password VARCHAR (128) NOT NULL,
         role VARCHAR (10) NOT NULL
     )"""
 
+    category_query = """
+    CREATE TABLE IF NOT EXISTS category (
+        category_id SERIAL PRIMARY KEY,
+        category_name VARCHAR (24) NOT NULL UNIQUE,
+        date_added TIMESTAMP DEFAULT NOW()
+    )"""
+
     products_table_query = """
-    CREATE TABLE products (
+    CREATE TABLE IF NOT EXISTS products (
         product_id SERIAL PRIMARY KEY,
-        product_name VARCHAR (24) NOT NULL,
+        product_name VARCHAR (24) NOT NULL UNIQUE,
         product_price INTEGER NOT NULL,
-        category VARCHAR (50) NOT NULL
+        min_quantity INTEGER NOT NULL,
+        inventory INTEGER NOT NULL,
+        added_by VARCHAR (30) NOT NULL REFERENCES users(email) ON DELETE CASCADE,
+        category VARCHAR (24) NOT NULL REFERENCES category(category_name) ON DELETE CASCADE
     )"""
 
     sales_order_query = """
-    CREATE TABLE saleorders (
+    CREATE TABLE IF NOT EXISTS saleorders (
         saleorder_id SERIAL PRIMARY KEY,
         date_ordered TIMESTAMP DEFAULT NOW(),
-        product_name VARCHAR (24) NOT NULL,
-        product_price INTEGER NOT NULL,
-        quantity INTEGER NOT NULL,
-        amount INTEGER NOT NULL
+        amount INTEGER NOT NULL,
+        made_by VARCHAR (30) NOT NULL REFERENCES users(email) ON DELETE CASCADE
     )"""
 
-    return [users_table_query, products_table_query, sales_order_query]
+    sale_items_query = """
+    CREATE TABLE IF NOT EXISTS saleitems (
+        saleorder_id INTEGER NOT NULL REFERENCES saleorders(saleorder_id) ON DELETE CASCADE,
+        product INTEGER NOT NULL REFERENCES products(product_id) ON DELETE CASCADE,
+        quantity INTEGER NOT NULL
+    )"""
+
+    blacklist_query = """
+    CREATE TABLE IF NOT EXISTS blacklist (
+        token VARCHAR (240) NOT NULL
+    )
+    """
+
+    return [users_table_query, category_query, products_table_query,
+            sales_order_query, sale_items_query, blacklist_query]
 
 
 def drop_table_if_exists():
     """Drop tables before recreating them"""
 
     drop_products_table = """
-    DROP TABLE IF EXISTS products"""
+    DROP TABLE IF EXISTS products CASCADE"""
 
     drop_sales_table = """
-    DROP TABLE IF EXISTS saleorders"""
+    DROP TABLE IF EXISTS saleorders CASCADE"""
 
     drop_users_table = """
-    DROP TABLE IF EXISTS users"""
+    DROP TABLE IF EXISTS users CASCADE"""
 
-    return [drop_products_table, drop_sales_table, drop_users_table]
+    drop_category_table = """
+    DROP TABLE IF EXISTS category CASCADE"""
+
+    drop_saleitems_table = """
+    DROP TABLE IF EXISTS saleitems CASCADE"""
+
+    drop_blacklist_table = """
+    DROP TABLE IF EXISTS blacklist CASCADE"""
+
+    return [drop_products_table, drop_sales_table,
+     drop_users_table, drop_category_table, drop_blacklist_table, drop_saleitems_table]
 
 
 def query_database(query=None, db_url=None):
@@ -82,11 +122,11 @@ def query_database(query=None, db_url=None):
     """
     conn = None
     if db_url is None:
-        db_url = config['db_url']
+        db_url = config[os.getenv("FLASK_ENV")].DB_URL
     try:
         # connect to db
         conn = psycopg2.connect(db_url)
-        cursor = conn.cursor()
+        cursor = conn.cursor(cursor_factory= psycopg2.extras.RealDictCursor)
 
         if query:
             cursor.execute(query)

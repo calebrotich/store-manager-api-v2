@@ -7,6 +7,7 @@ import json
 
 from . import base_test
 from . import common_functions
+from app.api.v2 import database
 
 class TestAuth(base_test.TestBaseClass):
     """ Class contains tests for auth endpoints """
@@ -27,6 +28,22 @@ class TestAuth(base_test.TestBaseClass):
         self.assertEqual(common_functions.convert_response_to_json(
             response)["Message"], "You need to login")
 
+    def test_missing_token_user(self):
+        """Test GET /products - when user who generated token is missing"""
+
+        self.register_test_admin_account()
+        token = self.login_test_admin()
+
+        query = """DELETE FROM users"""
+        database.insert_to_db(query)
+
+        response = self.app_test_client.post('{}/products'.format(
+            self.BASE_URL), json=self.PRODUCT, headers=dict(Authorization=token),
+            content_type='application/json')
+
+        self.assertEqual(response.status_code, 406)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)["message"], "The token is invalid since it is not associated to any account")
 
     def test_invalid_token(self):
         """Test GET /products - when token is missing"""
@@ -76,7 +93,7 @@ class TestAuth(base_test.TestBaseClass):
         self.assertEqual(data['message'], "Missing required credentials")
         self.assertEqual(res.status_code, 400)
 
-    def test_add_new_user_missing_params(self):
+    def test_add_new_user_missing_data(self):
         res = self.app_test_client.post("api/v2/auth/signup",
         json={
             "email": "",
@@ -91,6 +108,22 @@ class TestAuth(base_test.TestBaseClass):
         print(data)
 
         self.assertEqual(data['message'], "You are missing a required credential")
+        self.assertEqual(res.status_code, 400)
+
+    def test_add_new_user_missing_key(self):
+        res = self.app_test_client.post("api/v2/auth/signup",
+        json={
+            "role": "Admin",
+            "password": "Password12#"
+             }, 
+        headers={
+            "Content-Type": "application/json"
+            })
+
+        data = json.loads(res.data.decode())
+        print(data)
+
+        self.assertEqual(data['message'], "Missing required credentials")
         self.assertEqual(res.status_code, 400)
 
     def test_add_new_user_invalid_email(self):
@@ -264,4 +297,32 @@ class TestAuth(base_test.TestBaseClass):
         self.assertTrue(common_functions.convert_response_to_json(
         resp)['message'], "User not found.")
         self.assertEqual(resp.status_code, 404)
+
+    def test_abort_if_user_is_not_admin(self):
+        self.register_test_admin_account()
+        self.register_test_attendant_account()
+        token = self.login_test_attendant()
+
+        response = self.app_test_client.post('{}/products'.format(
+            self.BASE_URL), json={
+                'product_id': 1, 'product_name': "Hammer", 'product_price': 200, 'category': 200
+                }, headers=dict(Authorization=token),
+                content_type='application/json')
+
+        self.assertTrue(common_functions.convert_response_to_json(
+        response)['message'], "Unauthorized. This action is not for you")
+        self.assertEqual(response.status_code, 401)
+
+
+    def test_logout(self):
+        token = self.login_test_admin()
+
+        response = self.app_test_client.post('{}/auth/logout'.format(
+            self.BASE_URL), headers=dict(Authorization=token),
+            content_type='application/json')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)['message'], "user@gmail.com Logged out successfully"
+        )
     

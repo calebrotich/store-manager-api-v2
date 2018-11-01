@@ -16,8 +16,11 @@ class TestSaleOrder(base_test.TestBaseClass):
     """
     def test_create_sale_order(self):
         """Test POST /saleorder"""
-        self.register_test_admin_account()
         token = self.login_test_admin() 
+
+        response = self.app_test_client.post('{}/products'.format(
+        self.BASE_URL), json=self.PRODUCT, headers=dict(Authorization=token),
+        content_type='application/json')
 
         # send a dummy data response for testing
         response = self.app_test_client.post('{}/saleorder'.format(
@@ -25,14 +28,6 @@ class TestSaleOrder(base_test.TestBaseClass):
             content_type='application/json')
 
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(common_functions.convert_response_to_json(
-            response)['saleorder']['product_name'], self.SALE_ORDERS['product_name'])
-        self.assertEqual(common_functions.convert_response_to_json(
-            response)['saleorder']['product_price'], self.SALE_ORDERS['product_price'])
-        self.assertEqual(common_functions.convert_response_to_json(
-            response)['saleorder']['quantity'], self.SALE_ORDERS['quantity'])
-        self.assertEqual(common_functions.convert_response_to_json(
-            response)['saleorder']['amount'], self.SALE_ORDERS['amount'])
         self.assertEqual(common_functions.convert_response_to_json(
             response)['message'], 'Checkout complete')
 
@@ -42,11 +37,10 @@ class TestSaleOrder(base_test.TestBaseClass):
 
         with one of the required parameters missing
         """
-        self.register_test_admin_account()
         token = self.login_test_admin()
 
         response = self.app_test_client.post('{}/saleorder'.format(
-            self.BASE_URL), json={'product_name': 'Nyundo'}, headers=dict(Authorization=token),
+            self.BASE_URL), json={'quantity': 6}, headers=dict(Authorization=token),
             content_type='application/json')
 
         self.assertEqual(response.status_code, 400)
@@ -54,43 +48,52 @@ class TestSaleOrder(base_test.TestBaseClass):
             response)['message'], 'Request missing a required argument')
 
 
-    def test_create_sale_order_price_below_one(self):
-        """Test POST /saleorder
-
-        with the price not a valid integer
-        """
-        self.register_test_admin_account()
-        token = self.login_test_admin()
-
-        response = self.app_test_client.post('{}/saleorder'.format(
-            self.BASE_URL), json={'product_name': 'Nyundo', 'product_price': -1, 'quantity': 1},
-            headers=dict(Authorization=token),
-            content_type='application/json')
-
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(common_functions.convert_response_to_json(
-            response)['message'], 'Bad request. Price of the product should be a positive integer above 0.')
-
 
     def test_create_sale_order_invalid_product_name(self):
         """Test POST /saleorder
 
         with the product name not a string
         """
-        self.register_test_admin_account()
         token = self.login_test_admin()
 
         response = self.app_test_client.post('{}/saleorder'.format(
-            self.BASE_URL), json={'product_name': 3, 'product_price': 300, 'quantity': 1},
+            self.BASE_URL), json={
+                'items': [{
+                    'product_name': 3,
+                    'quantity': 3
+                }]
+            },
             headers=dict(Authorization=token),
             content_type='application/json')
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(common_functions.convert_response_to_json(
-            response)['message'], 'Bad request. Product name should be a string')
+            response)['message'], 'Please fill the product name as a string')
 
 
-    def test_create_sale_order_price_not_digits(self):
+    def test_create_sale_order_items_not_in_list(self):
+        """Test POST /saleorder
+
+        with the product name not a string
+        """
+        token = self.login_test_admin()
+
+        response = self.app_test_client.post('{}/saleorder'.format(
+            self.BASE_URL), json={
+                'items': {
+                    'product_name': 3,
+                    'quantity': 3
+                }
+            },
+            headers=dict(Authorization=token),
+            content_type='application/json')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)['message'], 'The value should be a list of dictionaries')
+
+
+    def test_create_sale_order_quantity_not_digits(self):
         """Test POST /saleorder
 
         with the price not a valid integer
@@ -100,73 +103,190 @@ class TestSaleOrder(base_test.TestBaseClass):
         token = self.login_test_admin()
 
         response = self.app_test_client.post('{}/saleorder'.format(
-            self.BASE_URL), json={'product_name': "Nyundo", 'product_price': "300", 'quantity': 1},
+            self.BASE_URL), json={
+                'items': [{
+                    'product_name': 'Phone Model 1',
+                    'quantity': 'string'
+                }]
+            },
             headers=dict(Authorization=token),
             content_type='application/json')
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(common_functions.convert_response_to_json(
-            response)['message'], 'Bad request. The product price should be digits')
+        response)['message'], 'Please have a number for the quantity value')
 
-
-    def test_create_sale_order_invalid_quantity(self):
+    def test_create_sale_order_missing_product_parameter(self):
         """Test POST /saleorder
 
-        with the quantity not a valid integer
+        with the price not a valid integer
         """
+
         self.register_test_admin_account()
         token = self.login_test_admin()
-        
+
         response = self.app_test_client.post('{}/saleorder'.format(
-            self.BASE_URL), json={'product_name': "Nyundo", 'product_price': 300, 'quantity': "1"}, 
+            self.BASE_URL), json={
+                'items': [{
+                    'quantity': 4
+                }]
+            },
             headers=dict(Authorization=token),
             content_type='application/json')
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(common_functions.convert_response_to_json(
-            response)['message'], 'Bad request. The quantity should be specified in digits')
+        response)['message'], 'Request missing a required argument')
 
+    def test_create_sale_order_quatity_greater_than_inventory(self):
+        """Test POST /saleorder"""
+        token = self.login_test_admin() 
+
+        response = self.app_test_client.post('{}/products'.format(
+        self.BASE_URL), json=self.PRODUCT, headers=dict(Authorization=token),
+        content_type='application/json')
+
+        # send a dummy data response for testing
+        response = self.app_test_client.post('{}/saleorder'.format(
+            self.BASE_URL), json={
+                'items': [
+                    {
+                        'product_name': 'Phone Model 1',
+                        'quantity': 52
+                    }
+                ]
+            }, headers=dict(Authorization=token),
+            content_type='application/json')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)['message'], "Our current stock cannot serve an order of 52. You can currently order a maximum of 50 for the product 'Phone Model 1'")
+
+    def test_create_sale_order_quatity_less_than_one(self):
+        """Test POST /saleorder"""
+        token = self.login_test_admin() 
+
+        response = self.app_test_client.post('{}/products'.format(
+        self.BASE_URL), json=self.PRODUCT, headers=dict(Authorization=token),
+        content_type='application/json')
+
+        # send a dummy data response for testing
+        response = self.app_test_client.post('{}/saleorder'.format(
+            self.BASE_URL), json={
+                'items': [
+                    {
+                        'product_name': 'Phone Model 1',
+                        'quantity': 0
+                    }
+                ]
+            }, headers=dict(Authorization=token),
+            content_type='application/json')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)['message'], "Please have a quantity value over 0")
+
+    def test_create_sale_order_inventory_equal_to_zero(self):
+        """Test POST /saleorder"""
+        token = self.login_test_admin() 
+
+        response = self.app_test_client.post('{}/products'.format(
+        self.BASE_URL), json={
+            'product_name': 'Phone Model 1',
+            'product_price': 55000,
+            'min_quantity': 10,
+            'inventory': 0,
+            'added_by': 'user@gmail.com',
+            'category': 'Tools'
+        }, headers=dict(Authorization=token),
+        content_type='application/json')
+
+        # send a dummy data response for testing
+        response = self.app_test_client.post('{}/saleorder'.format(
+            self.BASE_URL), json={
+                'items': [
+                    {
+                        'product_name': 'Phone Model 1',
+                        'quantity': 52
+                    }
+                ]
+            }, headers=dict(Authorization=token),
+            content_type='application/json')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)['message'], "Please eliminate Phone Model 1 from your sale. It is currently out of stock")
+
+
+    def test_create_saleorder_product_missing(self):
+        """Test POST /saleorder"""
+        token = self.login_test_admin() 
+
+        # send a dummy data response for testing
+        response = self.app_test_client.post('{}/saleorder'.format(
+            self.BASE_URL), json={
+                'items': [
+                    {
+                        'product_name': 'Phone Model 1',
+                        'quantity': 52
+                    }
+                ]
+            }, headers=dict(Authorization=token),
+            content_type='application/json')
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)['message'], "Phone Model 1 not available in the store. Processing halted")
 
     def test_retrieve_specific_sale_order(self):
         """Test GET /saleorder/id - when saleorder exists"""
-
-        self.register_test_admin_account()
         token = self.login_test_admin()
+        self.app_test_client.post('{}/products'.format(
+        self.BASE_URL), json=self.PRODUCT, headers=dict(Authorization=token),
+        content_type='application/json')
 
         self.app_test_client.post(
-        '{}/saleorder'.format(self.BASE_URL), json={
-            'product_name': "Test Product",
-            'product_price': 20,
-            'quantity': 1,
-            'amount': 20
-        },
+        '{}/saleorder'.format(self.BASE_URL), json=self.SALE_ORDERS,
         headers=dict(Authorization=token),
         content_type='application/json')
 
-        query = """SELECT saleorder_id FROM saleorders WHERE product_name = 'Test Product'"""
-        saleorder_id = database.select_from_db(query)
-        print(saleorder_id[0][0])
         response = self.app_test_client.get(
-            '{}/saleorder/{}'.format(self.BASE_URL, saleorder_id[0][0]),
+            '{}/saleorder/1'.format(self.BASE_URL),
             headers=dict(Authorization=token),
             content_type='application/json'
             )
 
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(common_functions.convert_response_to_json(
+        response)['message'], 'Sale order fetched successfully')
+
+    def test_retrieve_specific_sale_order_not_found(self):
+        """Test GET /saleorder/id - when saleorder exists"""
+
+        token = self.login_test_admin()
+
+        response = self.app_test_client.get(
+            '{}/saleorder/100'.format(self.BASE_URL),
+            headers=dict(Authorization=token),
+            content_type='application/json'
+            )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(common_functions.convert_response_to_json(
+        response)['message'], 'Sale Order with id 100 not found')
+        
 
 
     def test_fetch_sale_orders(self):
         """Test GET /saleorder - when sale order exists"""
-        self.register_test_admin_account()
         token = self.login_test_admin()
 
+        self.app_test_client.post('{}/products'.format(
+        self.BASE_URL), json=self.PRODUCT, headers=dict(Authorization=token),
+        content_type='application/json')
+
         self.app_test_client.post(
-        '{}/saleorder'.format(self.BASE_URL), json={
-            'product_name': "Test Product",
-            'product_price': 20,
-            'quantity': 1,
-            'amount': 20
-        },
+        '{}/saleorder'.format(self.BASE_URL), json=self.SALE_ORDERS,
         headers=dict(Authorization=token),
         content_type='application/json')
                                                                 
@@ -179,6 +299,23 @@ class TestSaleOrder(base_test.TestBaseClass):
         
         self.assertEqual(response.status_code, 200)
         self.assertEqual(common_functions.convert_response_to_json(
-            response)['sale_orders'][0][2], "Test Product")
+            response)['sale_orders'][0]['amount'], 110000)
         self.assertEqual(common_functions.convert_response_to_json(
-           response)['sale_orders'][0][3], 20)
+           response)['sale_orders'][0]['made_by'], 'user@gmail.com')
+
+
+    def test_fetch_sale_orders_no_data(self):
+        """Test GET /saleorder - when sale order exists"""
+        self.register_test_admin_account()
+        token = self.login_test_admin()
+
+        response = self.app_test_client.get(
+            '{}/saleorder'.format(self.BASE_URL),
+
+            headers=dict(Authorization=token),
+            content_type='application/json'
+        )
+        
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)['message'], "No sale orders created yet")

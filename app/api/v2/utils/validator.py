@@ -15,14 +15,10 @@ class Validator:
         
         self.email = data["email"].strip()
         self.password = data["password"].strip()
-        self.role = data["role"].strip()
         valid_email = validate_email(self.email)
 
-        if self.email == "" or self.password == "" or self.role == "":
-            Message = "You are missing a required credential"
-            abort(400, Message)
         if not valid_email:
-            Message = "Invalid email"
+            Message = "Please supply a valid email"
             abort(400, Message)
         elif len(self.password) < 6 or len(self.password) > 12:
             Message = "Password must be long than 6 characters or less than 12"
@@ -48,8 +44,8 @@ class Validator:
         """
         
         query = """
-        SELECT {} FROM {} WHERE {}.{} = '{}'
-        """.format(column, table, table, column, value)
+        SELECT {} FROM {} WHERE LOWER({}) = LOWER('{}')
+        """.format(column, table, column, value)
 
         duplicated = database.select_from_db(query)
 

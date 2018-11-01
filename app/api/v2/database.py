@@ -33,7 +33,7 @@ def init_db(db_url=None):
         conn.close()
 
     except Exception as error:
-        print("Query not executed : {} \n".format(error))
+        print("DB Error : {} \n".format(error))
 
 
 def create_tables():

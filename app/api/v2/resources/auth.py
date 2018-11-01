@@ -58,24 +58,43 @@ class Login(Resource):
     def post(self):
         """POST /auth/signup"""
 
-        data = request.get_json()
+        data = request.get_json()          
         if not data:
             return make_response(jsonify({
-                "message": "Kindly enter your credentials"
+                "message": "Kindly provide an email and a password to login"
             }
             ), 400)
-        request_email = data["email"].strip()
-        request_password = data["password"].strip()
-        
+
+        try:
+            request_mail = data["email"]
+        except:
+            return make_response(jsonify({
+                "message": "Kindly provide an email address to log in"
+             }), 400)
+
+        if not isinstance(data['email'], str):
+             return make_response(jsonify({
+                "message": "E-mail should be a string"
+            }
+            ), 406)
+
+        if not isinstance(data['password'], str):
+             return make_response(jsonify({
+                "message": "Password should be a string"
+            }
+            ), 406)
+
+        request_email = request_mail.strip()
+        try:
+            request_password = data["password"]
+        except:
+            return make_response(jsonify({
+                "message": "Kindly provide a password to log in"
+             }), 400)
+                    
         user = users.User_Model.fetch_user(request_email)
-        if not user:
-            abort(make_response(jsonify(
-                message="User registered with that e-mail is not found."), 404))
 
-        user_email = user[0]['email']
-        user_password = user[0]['password']
-
-        if request_email == user_email and check_password_hash(user_password, request_password):
+        if user and request_email == user[0]['email'] and check_password_hash(user[0]['password'], request_password):
             token = jwt.encode({
                 "email": request_email,
                 "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=3000)
@@ -85,7 +104,7 @@ class Login(Resource):
                             "token": token.decode("UTF-8")}), 200)
 
         return make_response(jsonify({
-            "message": "Try again. Incorrect password!"
+            "message": "Try again. E-mail or password is incorrect!"
         }
         ), 403)
 

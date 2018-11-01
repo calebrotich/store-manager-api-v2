@@ -72,6 +72,13 @@ class Login(Resource):
                 "message": "Kindly provide an email address to log in"
              }), 400)
 
+        try:
+            request_password = data["password"]
+        except:
+            return make_response(jsonify({
+                "message": "Kindly provide a password to log in"
+             }), 400)
+
         if not isinstance(data['email'], str):
              return make_response(jsonify({
                 "message": "E-mail should be a string"
@@ -85,12 +92,6 @@ class Login(Resource):
             ), 406)
 
         request_email = request_mail.strip()
-        try:
-            request_password = data["password"]
-        except:
-            return make_response(jsonify({
-                "message": "Kindly provide a password to log in"
-             }), 400)
                     
         user = users.User_Model.fetch_user(request_email)
 

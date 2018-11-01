@@ -48,8 +48,8 @@ class Validator:
         """
         
         query = """
-        SELECT {} FROM {} WHERE {}.{} = '{}'
-        """.format(column, table, table, column, value)
+        SELECT {} FROM {} WHERE LOWER({}) = LOWER('{}')
+        """.format(column, table, column, value)
 
         duplicated = database.select_from_db(query)
 

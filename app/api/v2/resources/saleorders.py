@@ -17,53 +17,98 @@ class SaleOrder(Resource):
 
     def post(self):
         """POST /saleorder endpoint"""
-
-        verify.verify_tokens()
+        logged_user = verify.verify_tokens()
 
         data = request.get_json()
         common_functions.no_json_in_request(data)
         try:
-            product_name = data['product_name']
-            product_price = data['product_price']
-            quantity = data['quantity']
+            items = data['items']
         except KeyError:
-            # If product is missing required parameter
             common_functions.missing_a_required_parameter()
 
-        if not isinstance(product_price, int):
+        if not isinstance(items, (list, )):
             abort(make_response(jsonify(
-                message="Bad request. The product price should be digits"
-            ), 400))
+                message="The value should be a list of dictionaries"
+                ), 400))
 
-        if product_price < 1:
-            abort(make_response(jsonify(
-                message="Bad request. Price of the product should be a positive integer above 0."
-            ), 400))
+        totalAmount = 0
+        saleorder = saleorders.SaleOrder(amount=totalAmount, made_by=logged_user)
+        saleorder.save()
 
-        if not isinstance(product_name, str):
-            abort(make_response(jsonify(
-                message="Bad request. Product name should be a string"
-            ), 400))
+        query = """SELECT saleorder_id from saleorders WHERE amount = 0
+        """
+        saleorder_id = database.select_from_db(query)[0]['saleorder_id']
+        for item in items:
+            try:
+                product_name = item['product_name']
+                quantity = item['quantity']
+            except:
+                common_functions.missing_a_required_parameter()
 
+            if not isinstance(product_name, str):
+                rollback_saleorder = saleorders.SaleOrder(saleorder_id=saleorder_id)
+                rollback_saleorder.rollback_saleorder()
+                abort(make_response(jsonify(
+                    message="Please fill the product name as a string"
+                ), 400))
 
-        if not isinstance(quantity, int):
-            abort(make_response(jsonify(
-                message="Bad request. The quantity should be specified in digits"
-            ), 400))
-        strip_product_name = product_name.strip()
-        sale_order = saleorders.SaleOrder(strip_product_name, product_price, quantity)
-        sale_order.save()
+            if not isinstance(quantity, int):
+                rollback_saleorder = saleorders.SaleOrder(saleorder_id=saleorder_id)
+                rollback_saleorder.rollback_saleorder()
+                abort(make_response(jsonify(
+                    message="Please have a number for the quantity value"
+                ), 400))
+
+            if quantity < 1:
+                rollback_saleorder = saleorders.SaleOrder(saleorder_id=saleorder_id)
+                rollback_saleorder.rollback_saleorder()
+                abort(make_response(jsonify(
+                    message="Please have a quantity value over 0"
+                ), 400))
+
+            query = """SELECT * FROM products WHERE product_name = '{}'""".format(product_name)
+            product_exists = database.select_from_db(query)
+            if product_exists:
+                product_id = product_exists[0]['product_id']
+                product_price = product_exists[0]['product_price']
+                inventory = product_exists[0]['inventory']
+                if inventory == 0:
+                    rollback_saleorder = saleorders.SaleOrder(saleorder_id=saleorder_id)
+                    rollback_saleorder.rollback_saleorder()
+                    return abort(make_response(jsonify(
+                    message="Please eliminate {} from your sale. It is currently out of stock".format(product_name)
+                    ), 400))
+
+                if quantity > inventory:
+                     rollback_saleorder = saleorders.SaleOrder(saleorder_id=saleorder_id)
+                     rollback_saleorder.rollback_saleorder()
+
+                     return abort(make_response(jsonify(
+                     message="Our current stock cannot serve an order of {}. You can currently order a maximum of {} for the product '{}'".format(quantity, inventory, product_name)
+                     ), 400))                   
+
+                totalAmount += (product_price * quantity)
+                sale_item = saleorders.SaleItems(saleorder_id=saleorder_id, product=product_id, quantity=quantity)
+                sale_item.save()
+                updated_inventory = inventory - quantity
+                product_to_update = products.Products(product_id=product_id ,inventory=updated_inventory)
+                product_to_update.deduct_inventory()
+
+            if not product_exists:
+                rollback_saleorder = saleorders.SaleOrder(saleorder_id=saleorder_id)
+                rollback_saleorder.rollback_saleorder()
+                return abort(make_response(jsonify({
+                    "message": "{} not available in the store. Processing halted".format(product_name)
+                }), 404))
+
+        update_amount_query = """UPDATE saleorders SET amount = {} WHERE saleorder_id = {}""".format(totalAmount, saleorder_id)
+        database.insert_to_db(update_amount_query)
 
         return make_response(jsonify({
             "message": "Checkout complete",
-            "saleorder": {
-                "product_name": product_name,
-                "product_price": product_price,
-                "quantity": quantity,
-                "amount": (product_price * quantity)
-            }
+            "items_sold": items,
+            "total_amount": totalAmount
         }), 201)
-
 
     def get(self):
         """GET /saleorder endpoint"""

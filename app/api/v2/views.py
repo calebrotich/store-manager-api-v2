@@ -20,3 +20,4 @@ API.add_resource(category.SpecificCategory, '/category/<int:category_id>')
 
 AUTH_API.add_resource(auth.SignUp, '/signup')
 AUTH_API.add_resource(auth.Login, '/login')
+AUTH_API.add_resource(auth.Logout, '/logout')

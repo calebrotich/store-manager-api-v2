@@ -41,7 +41,7 @@ class TestAuth(base_test.TestBaseClass):
             self.BASE_URL), json=self.PRODUCT, headers=dict(Authorization=token),
             content_type='application/json')
 
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 406)
         self.assertEqual(common_functions.convert_response_to_json(
             response)["message"], "The token is invalid since it is not associated to any account")
 
@@ -312,4 +312,17 @@ class TestAuth(base_test.TestBaseClass):
         self.assertTrue(common_functions.convert_response_to_json(
         response)['message'], "Unauthorized. This action is not for you")
         self.assertEqual(response.status_code, 401)
+
+
+    def test_logout(self):
+        token = self.login_test_admin()
+
+        response = self.app_test_client.post('{}/auth/logout'.format(
+            self.BASE_URL), headers=dict(Authorization=token),
+            content_type='application/json')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)['message'], "user@gmail.com Logged out successfully"
+        )
     

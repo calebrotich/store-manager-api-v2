@@ -26,7 +26,14 @@ class ProductCategory(Resource):
             category_name = data['category_name']
         except KeyError:
             # If product is missing required parameter
-            common_functions.missing_a_required_parameter()
+            return make_response(jsonify({
+                        "message": "Please provide a name for the category"
+                        }), 400)
+
+        if not isinstance(category_name, str):
+            return make_response(jsonify({
+                        "message": "Category name should be a string"
+                        }), 406)            
 
         validator.Validator.check_duplication("category_name", "category", category_name)
 
@@ -101,15 +108,12 @@ class SpecificCategory(Resource):
     def delete(self, category_id):
         logged_user = verify.verify_tokens()
         common_functions.abort_if_user_is_not_admin(logged_user)
-
-        query = """SELECT * FROM category WHERE category_id = {}""".format(category_id)
-        category_exists = database.select_from_db(query)
-        
-        if not category_exists:
+        query="""SELECT * FROM category WHERE category_id = {}""".format(category_id)
+        cat_exists = database.select_from_db(query)
+        if not cat_exists:
             return make_response(jsonify({
-            "message": "Category with id {} does not exist".format(category_id)
+                "message":"No need for that. Category with id {} does not exist".format(category_id),
             }), 404)
-
         fetch_category = category.Category(category_id=category_id)
         fetch_category.delete()
 

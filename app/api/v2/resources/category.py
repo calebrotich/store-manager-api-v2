@@ -43,8 +43,8 @@ class ProductCategory(Resource):
 
     def get(self):
         """GET /category"""
-        verify.verify_tokens()
-
+        logged_user = verify.verify_tokens()
+        common_functions.abort_if_user_is_not_admin(logged_user)
         fetch_category = category.Category()
         fetched_categories = fetch_category.get()
 
@@ -99,9 +99,20 @@ class SpecificCategory(Resource):
 
 
     def delete(self, category_id):
-            fetch_category = category.Category(category_id=category_id)
-            fetch_category.delete()
+        logged_user = verify.verify_tokens()
+        common_functions.abort_if_user_is_not_admin(logged_user)
 
+        query = """SELECT * FROM category WHERE category_id = {}""".format(category_id)
+        category_exists = database.select_from_db(query)
+        
+        if not category_exists:
             return make_response(jsonify({
-                "message": "Category deleted successfully"
-            }), 200)
+            "message": "Category with id {} does not exist".format(category_id)
+            }), 404)
+
+        fetch_category = category.Category(category_id=category_id)
+        fetch_category.delete()
+
+        return make_response(jsonify({
+            "message": "Category deleted successfully"
+        }), 200)

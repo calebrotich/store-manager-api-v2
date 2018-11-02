@@ -31,15 +31,22 @@ class Product(Resource):
             product_name = data['product_name']
             product_price = data['product_price']
             category = data['category']
+            min_quantity = data['min_quantity']
+            inventory = data['inventory']
         except KeyError:
             # If product is missing required parameter
             common_functions.missing_a_required_parameter()
-
-        verify.verify_post_product_fields(product_price, product_name, category)
+        query = """SELECT category_name from category WHERE category_name = '{}'""".format(category)
+        category_exist = database.select_from_db(query)
+        if not category_exist:
+            abort(make_response(jsonify({
+                "Message": "Please add a recognized category. {} is not.".format(category)}), 406))
+        verify.verify_post_product_fields(product_price=product_price, category=category, inventory=inventory, min_quantity=min_quantity, product_name=product_name)
         validator.Validator.check_duplication("product_name", "products", product_name)
 
         added_product = products.Products(product_name=product_name, product_price=product_price,
-                                          category=category)
+                                          category=category, min_quantity=min_quantity, inventory=inventory,
+                                          added_by=logged_user)
         added_product.save()
 
         return make_response(jsonify({
@@ -88,7 +95,7 @@ class SpecificProduct(Resource):
             }), 404)
         
         return make_response(jsonify({
-            "message": "{} retrieved successfully".format(fetched_product[0][1]),
+            "message": "{} retrieved successfully".format(fetched_product[0]['product_name']),
             "product": fetched_product
             }), 200)
 
@@ -100,25 +107,38 @@ class SpecificProduct(Resource):
 
         data = request.get_json()
         try:
-            product_name = data['product_name']
             product_price = data['product_price']
             category = data['category']
+            inventory = data['inventory']
+            min_quantity = data['min_quantity']
 
         except:
             return make_response(jsonify({
                 "message":"Pass all the required fields, the ones you wish not"
                            + " to update should still be passed with the same data"
             }), 403)
+
+
+        check_id_query = """SELECT * FROM products WHERE product_id={}""".format(product_id)
+        product_present = database.select_from_db(check_id_query)
+        if not product_present:
+            return make_response(jsonify({
+                "message":"Product with id {} does not exist".format(product_id)
+             }), 404)            
             
         common_functions.no_json_in_request(data)
-        verify.verify_post_product_fields(product_price, product_name, category)
+        verify.verify_post_product_fields(product_price=product_price, category=category, inventory=inventory, min_quantity=min_quantity)
 
-        striped_product_name = data['product_name'].strip()
         striped_category = data['category'].strip()
-        validator.Validator.check_duplication("product_name", "products", striped_product_name)
+        category_query = """SELECT * FROM category WHERE category_name = '{}'""".format(striped_category)
+        category_present = database.select_from_db(category_query)
+        if not category_present:
+            return make_response(jsonify({
+                "message": "{} is not a recognized category".format(striped_category)
+            }), 400)
 
-        product = products.Products(product_id=product_id, product_name=striped_product_name,
-                                    product_price=data['product_price'], category=striped_category)
+        product = products.Products(product_id=product_id, product_price=product_price,
+                                     category=striped_category, inventory=inventory, min_quantity=min_quantity)
         product.put()
         return make_response(jsonify({
             "message":"Product updated successfully",
@@ -127,6 +147,14 @@ class SpecificProduct(Resource):
 
 
     def delete(self, product_id):
+        query = """SELECT * FROM products WHERE product_id = {}""".format(product_id)
+        product = database.select_from_db(query)
+        
+        if not product:
+            return make_response(jsonify({
+            "message": "Product with id {} does not exist".format(product_id)
+            }), 404)
+
         product = products.Products(product_id=product_id)
         product.delete()
 

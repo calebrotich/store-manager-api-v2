@@ -61,3 +61,8 @@ def verify_post_product_fields(product_price=None, category=None, inventory=None
         abort(make_response(jsonify(
             message="Product name should be a string"
         ), 400))
+
+    if product_name == "":
+        abort(make_response(jsonify(
+            message="Product name can not be blank"
+        ), 400))

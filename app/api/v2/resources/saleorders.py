@@ -24,8 +24,9 @@ class SaleOrder(Resource):
         try:
             items = data['items']
         except KeyError:
-            common_functions.missing_a_required_parameter()
-
+            return make_response(jsonify({
+                "message":"list of items missing"
+            }), 403)
         if not isinstance(items, (list, )):
             abort(make_response(jsonify(
                 message="The value should be a list of dictionaries"
@@ -41,9 +42,16 @@ class SaleOrder(Resource):
         for item in items:
             try:
                 product_name = item['product_name']
+            except:
+                return make_response(jsonify({
+                    "message":"Product name missing"
+                }), 403)            
+            try:
                 quantity = item['quantity']
             except:
-                common_functions.missing_a_required_parameter()
+                return make_response(jsonify({
+                    "message":"Product name missing"
+                }), 403) 
 
             if not isinstance(product_name, str):
                 rollback_saleorder = saleorders.SaleOrder(saleorder_id=saleorder_id)

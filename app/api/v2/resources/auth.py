@@ -17,13 +17,15 @@ from instance import config
 from ..utils.validator import Validator
 from ..models import users
 from ..utils import verify
+from . import common_functions
 
 class SignUp(Resource):
     """Signup class"""
 
     def post(self):
         """POST /auth/login"""
-
+        logged_user = verify.verify_tokens()
+        common_functions.abort_if_user_is_not_admin(logged_user)
         data = request.get_json()
         if not data:
             return make_response(jsonify({

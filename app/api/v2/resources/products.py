@@ -28,19 +28,43 @@ class Product(Resource):
         data = request.get_json()
         common_functions.no_json_in_request(data)
         try:
-            product_name = data['product_name']
-            product_price = data['product_price']
-            category = data['category']
-            min_quantity = data['min_quantity']
             inventory = data['inventory']
         except KeyError:
-            # If product is missing required parameter
-            common_functions.missing_a_required_parameter()
+            return make_response(jsonify({
+                        "message": "Indicate the amount of stock present"
+                        }), 400) 
+        try:
+            req_product_name = data['product_name']
+        except KeyError:
+            return make_response(jsonify({
+                        "message": "Provide a name for the product"
+                        }), 400) 
+        try:
+            product_price = data['product_price']
+        except KeyError:
+            return make_response(jsonify({
+                        "message": "Indicate the price of the product"
+                        }), 400) 
+        try:
+            req_category = data['category']
+        except KeyError:
+            return make_response(jsonify({
+                        "message": "Categorize the product"
+                        }), 400) 
+        try:
+            min_quantity = data['min_quantity']
+        except KeyError:
+            return make_response(jsonify({
+                        "message": "Please define the minimum quantity"
+                        }), 400) 
+        product_name = req_product_name.strip()
+        category = req_category.strip()
         query = """SELECT category_name from category WHERE category_name = '{}'""".format(category)
         category_exist = database.select_from_db(query)
         if not category_exist:
             abort(make_response(jsonify({
                 "Message": "Please add a recognized category. {} is not.".format(category)}), 406))
+        
         verify.verify_post_product_fields(product_price=product_price, category=category, inventory=inventory, min_quantity=min_quantity, product_name=product_name)
         validator.Validator.check_duplication("product_name", "products", product_name)
 
@@ -111,7 +135,6 @@ class SpecificProduct(Resource):
             category = data['category']
             inventory = data['inventory']
             min_quantity = data['min_quantity']
-
         except:
             return make_response(jsonify({
                 "message":"Pass all the required fields, the ones you wish not"

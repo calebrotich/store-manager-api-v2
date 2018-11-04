@@ -107,7 +107,7 @@ Inside the virtual environment created above, run command:
 [Heroku](https://store-manager-api-v2.herokuapp.com/)
 
 #### Documentation
-[Postgres documenter](https://web.postman.co/collections/5265531-086697fb-a305-420f-9385-5051bc385d0a?workspace=90ac61c2-8d86-4603-8151-f07f6a58b68b)
+[Postman documenter](https://web.postman.co/collections/5265531-086697fb-a305-420f-9385-5051bc385d0a?workspace=90ac61c2-8d86-4603-8151-f07f6a58b68b)
 
 #### Author
 [Caleb Rotich](https://github.com/calebrotich10)

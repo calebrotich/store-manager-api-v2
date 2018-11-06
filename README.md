@@ -79,7 +79,7 @@ Store Manager is a web application that helps store owners manage sales and prod
     <tr>
     <td>DELETE</td>
     <td>api/v2/product&ltint:product_id&gt</td>
-    <td>Enables a user to delete a category</td>
+    <td>Enables a user to delete a product</td>
   </tr>
    <tr>
     <td>POST</td>

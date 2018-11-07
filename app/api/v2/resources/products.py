@@ -57,7 +57,7 @@ class Product(Resource):
             return make_response(jsonify({
                         "message": "Please define the minimum quantity"
                         }), 400) 
-        product_name = req_product_name.strip()
+        product_name = req_product_name
         category = req_category
         query = """SELECT category_name from category WHERE category_name = '{}'""".format(category)
         category_exist = database.select_from_db(query)

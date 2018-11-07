@@ -32,20 +32,22 @@ class TestSaleOrder(base_test.TestBaseClass):
             response)['message'], 'Checkout complete')
 
 
-    def test_create_sale_order_parameter_missing(self):
+    def test_create_sale_order_quantity_missing(self):
         """Test POST /saleorder
 
-        with one of the required parameters missing
+        with the quantity parameter is missing
         """
-        token = self.login_test_admin()
-
         response = self.app_test_client.post('{}/saleorder'.format(
-            self.BASE_URL), json={'quantity': 6}, headers=dict(Authorization=token),
+            self.BASE_URL), json={
+                'items': [{
+                    'product_name': 'Phone Model 1'
+                }]
+            }, headers=dict(Authorization=self.token),
             content_type='application/json')
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 403)
         self.assertEqual(common_functions.convert_response_to_json(
-            response)['message'], 'Request missing a required argument')
+            response)['message'], 'Kindly specify the quantity of the product you want')
 
 
 
@@ -119,11 +121,8 @@ class TestSaleOrder(base_test.TestBaseClass):
     def test_create_sale_order_missing_product_parameter(self):
         """Test POST /saleorder
 
-        with the price not a valid integer
+        with the product parameter missing
         """
-
-        self.register_test_admin_account()
-        token = self.login_test_admin()
 
         response = self.app_test_client.post('{}/saleorder'.format(
             self.BASE_URL), json={
@@ -131,12 +130,12 @@ class TestSaleOrder(base_test.TestBaseClass):
                     'quantity': 4
                 }]
             },
-            headers=dict(Authorization=token),
+            headers=dict(Authorization=self.token),
             content_type='application/json')
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 403)
         self.assertEqual(common_functions.convert_response_to_json(
-        response)['message'], 'Request missing a required argument')
+        response)['message'], 'Kindly specify the product you want to buy')
 
     def test_create_sale_order_quatity_greater_than_inventory(self):
         """Test POST /saleorder"""

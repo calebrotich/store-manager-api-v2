@@ -37,7 +37,7 @@ class TestCategory(base_test.TestBaseClass):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(common_functions.convert_response_to_json(
-            response)["message"], "Request missing a required argument")
+            response)["message"], "Please provide a name for the category")
 
 
     def test_get_all_categories(self):

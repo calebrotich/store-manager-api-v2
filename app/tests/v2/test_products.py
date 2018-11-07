@@ -33,7 +33,7 @@ class TestProduct(base_test.TestBaseClass):
         self.assertEqual(common_functions.convert_response_to_json(
             response)['message'], 'Product added successfully')
 
-    def test_add_new_product_parameter_missing(self):
+    def test_add_new_product_inventory_missing(self):
         """Test POST /products
 
         with one of the required parameters missing
@@ -41,12 +41,14 @@ class TestProduct(base_test.TestBaseClass):
         token = self.login_test_admin()
 
         response = self.app_test_client.post('{}/products'.format(
-            self.BASE_URL), json={'product_name': 'Nyundo'}, headers=dict(Authorization=token),
+            self.BASE_URL), json={
+                'product_name': 'Nyundo'
+                }, headers=dict(Authorization=token),
             content_type='application/json')
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(common_functions.convert_response_to_json(
-            response)['message'], 'Request missing a required argument')
+            response)['message'], 'Indicate the amount of stock present')
 
     def test_add_new_product_price_under_one(self):
         """Test POST /products

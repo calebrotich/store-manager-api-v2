@@ -11,14 +11,10 @@ class TestCategory(base_test.TestBaseClass):
 
     def test_post_category(self):
         """POST /category"""
-
-        self.register_test_admin_account()
-        token = self.login_test_admin()
-
         response = self.app_test_client.post('{}/category'.format(
             self.BASE_URL), json={
                 'category_name': 'Accessories'
-            }, headers=dict(Authorization=token),
+            }, headers=dict(Authorization=self.token),
             content_type='application/json')
 
         self.assertEqual(response.status_code, 201)
@@ -27,12 +23,8 @@ class TestCategory(base_test.TestBaseClass):
 
     def test_post_category_missing_parameter(self):
         """POST /category"""
-
-        self.register_test_admin_account()
-        token = self.login_test_admin()
-
         response = self.app_test_client.post('{}/category'.format(
-            self.BASE_URL), json={}, headers=dict(Authorization=token),
+            self.BASE_URL), json={}, headers=dict(Authorization=self.token),
             content_type='application/json')
 
         self.assertEqual(response.status_code, 400)
@@ -41,12 +33,11 @@ class TestCategory(base_test.TestBaseClass):
 
 
     def test_get_all_categories(self):
-        token = self.login_test_admin()
         query = """INSERT INTO category(category_name) VALUES('Accessories')"""
         
         database.insert_to_db(query)
         response = self.app_test_client.get("{}/category".format(
-            self.BASE_URL), headers=dict(Authorization=token),
+            self.BASE_URL), headers=dict(Authorization=self.token),
             content_type='application/json')
 
         self.assertEqual(response.status_code, 200)
@@ -54,12 +45,10 @@ class TestCategory(base_test.TestBaseClass):
             response)["message"], "Categories fetched successfully")
 
     def test_get_all_categories_no_data(self):
-        self.register_test_admin_account()
-        token = self.login_test_admin()
         query = """DELETE FROM category"""
         database.insert_to_db(query)
         response = self.app_test_client.get("{}/category".format(
-            self.BASE_URL), headers=dict(Authorization=token),
+            self.BASE_URL), headers=dict(Authorization=self.token),
             content_type='application/json')
 
         self.assertEqual(response.status_code, 404)
@@ -68,12 +57,8 @@ class TestCategory(base_test.TestBaseClass):
 
     def test_update_category(self):
         """PUT /product/id - with expected success"""
-        token = self.login_test_admin()
-
-        query = """INSERT INTO category(category_name) VALUES('Accessories')"""
-        
+        query = """INSERT INTO category(category_name) VALUES('Accessories')"""     
         database.insert_to_db(query)
-
         query = """SELECT category_id FROM category WHERE category_name = 'Accessories'"""
         category_id = database.select_from_db(query)
 
@@ -82,7 +67,7 @@ class TestCategory(base_test.TestBaseClass):
              json={
                  'category_name':'Electronics',
              },
-            headers=dict(Authorization=token),
+            headers=dict(Authorization=self.token),
             content_type='application/json')
 
         self.assertEqual(response.status_code, 202)
@@ -91,12 +76,7 @@ class TestCategory(base_test.TestBaseClass):
 
     def test_update_category_missing_parameter(self):
         """PUT /product/id - with expected success"""
-
-        self.register_test_admin_account()
-        token = self.login_test_admin()
-
-        query = """INSERT INTO category(category_name) VALUES('Electronics')"""
-        
+        query = """INSERT INTO category(category_name) VALUES('Electronics')"""     
         database.insert_to_db(query)
 
         query = """SELECT category_id FROM category WHERE category_name = 'Electronics'"""
@@ -105,7 +85,7 @@ class TestCategory(base_test.TestBaseClass):
         response = self.app_test_client.put('{}/category/{}'.format(
             self.BASE_URL, category_id[0]['category_id']),
             json={},
-            headers=dict(Authorization=token),
+            headers=dict(Authorization=self.token),
             content_type='application/json')
 
         self.assertEqual(response.status_code, 403)
@@ -114,10 +94,7 @@ class TestCategory(base_test.TestBaseClass):
 
     def test_update_category_name_integer(self):
         """PUT /product/id - with expected success"""
-        token = self.login_test_admin()
-
-        query = """INSERT INTO category(category_name) VALUES('Electronics')"""
-        
+        query = """INSERT INTO category(category_name) VALUES('Electronics')"""    
         database.insert_to_db(query)
 
         query = """SELECT category_id FROM category WHERE category_name = 'Electronics'"""
@@ -128,7 +105,7 @@ class TestCategory(base_test.TestBaseClass):
             json={
                 "category_name": 4
             },
-            headers=dict(Authorization=token),
+            headers=dict(Authorization=self.token),
             content_type='application/json')
 
         self.assertEqual(response.status_code, 403)
@@ -138,9 +115,6 @@ class TestCategory(base_test.TestBaseClass):
     def test_delete_category(self):
         """DELETE /category/id"""
 
-        self.register_test_admin_account()
-        token = self.login_test_admin()
-
         query = """INSERT INTO category(category_name) VALUES('Electronics')""" 
         database.insert_to_db(query)
 
@@ -149,7 +123,7 @@ class TestCategory(base_test.TestBaseClass):
 
         response = self.app_test_client.delete('{}/category/{}'.format(
             self.BASE_URL, category_id[0]['category_id']),
-            headers=dict(Authorization=token),
+            headers=dict(Authorization=self.token),
             content_type='application/json')
 
         self.assertEqual(response.status_code, 200)

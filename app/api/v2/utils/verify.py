@@ -22,7 +22,7 @@ def verify_tokens():
                         "Message": "Kindly login again"}), 401))
     try:
         data = jwt.decode(token, os.getenv('JWT_SECRET_KEY', default='SdaHv342nx!jknr837bjwd?c,lsajjjhw673hdsbgeh'))
-        return data["email"]
+        return data["email"], data["user_id"]
 
     except:
         abort(make_response(jsonify({
@@ -52,9 +52,9 @@ def verify_post_product_fields(product_price=None, category=None, inventory=None
             message="Minimum quantity should be an integer"
         ), 400))
 
-    if not isinstance(category, str) and category:
+    if not isinstance(category, int) and category:
         abort(make_response(jsonify(
-            message="Category should be an string referencing the category table"
+            message="Category should be an integer referencing the category table"
         ), 400))
 
     if not isinstance(product_name, str) and product_name:

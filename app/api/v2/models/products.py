@@ -18,7 +18,7 @@ class Products():
 
     def save(self):
         query = """INSERT INTO products(product_name, product_price, category, min_quantity, inventory, added_by)
-        VALUES('{}', {}, '{}',{},{}, '{}')""".format(self.product_name, self.product_price,
+        VALUES('{}', {}, {},{},{}, {})""".format(self.product_name, self.product_price,
         self.category, self.min_quantity, self.inventory, self.added_by)
 
         database.insert_to_db(query)
@@ -33,7 +33,7 @@ class Products():
 
     def put(self):
         query = """UPDATE products SET product_price = {},
-        category = '{}', inventory={}, min_quantity={} WHERE product_id = {}""".format(self.product_price,
+        category = {}, inventory={}, min_quantity={} WHERE product_id = {}""".format(self.product_price,
                                                         self.category, self.inventory, self.min_quantity, self.product_id)
 
         database.insert_to_db(query)

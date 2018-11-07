@@ -22,7 +22,7 @@ class Product(Resource):
         """POST /products endpoint"""
 
         # Token verification and admin user determination
-        logged_user = verify.verify_tokens()
+        logged_user, user_id = verify.verify_tokens()
         common_functions.abort_if_user_is_not_admin(logged_user)
         
         data = request.get_json()
@@ -59,18 +59,17 @@ class Product(Resource):
                         }), 400) 
         product_name = req_product_name
         category = req_category
-        query = """SELECT category_name from category WHERE category_name = '{}'""".format(category)
+        query = """SELECT category_name from category WHERE category_id = {}""".format(category)
         category_exist = database.select_from_db(query)
         if not category_exist:
             abort(make_response(jsonify({
-                "Message": "Please add a recognized category. {} is not.".format(category)}), 406))
-        
+                "message": "Please add a recognized category. {} is not.".format(category)}), 406))
         verify.verify_post_product_fields(product_price=product_price, category=category, inventory=inventory, min_quantity=min_quantity, product_name=product_name)
         validator.Validator.check_duplication("product_name", "products", product_name)
 
         added_product = products.Products(product_name=product_name, product_price=product_price,
                                           category=category, min_quantity=min_quantity, inventory=inventory,
-                                          added_by=logged_user)
+                                          added_by=user_id)
         added_product.save()
 
         return make_response(jsonify({
@@ -124,7 +123,7 @@ class SpecificProduct(Resource):
     def put(self, product_id):
         """PUT /product/<int:product_id> endpoint"""
 
-        logged_user = verify.verify_tokens()
+        logged_user = verify.verify_tokens()[0]
         common_functions.abort_if_user_is_not_admin(logged_user)
 
         data = request.get_json()
@@ -150,16 +149,15 @@ class SpecificProduct(Resource):
         common_functions.no_json_in_request(data)
         verify.verify_post_product_fields(product_price=product_price, category=category, inventory=inventory, min_quantity=min_quantity)
 
-        striped_category = data['category'].strip()
-        category_query = """SELECT * FROM category WHERE category_name = '{}'""".format(striped_category)
+        category_query = """SELECT * FROM category WHERE category_id = '{}'""".format(category)
         category_present = database.select_from_db(category_query)
         if not category_present:
             return make_response(jsonify({
-                "message": "{} is not a recognized category".format(striped_category)
+                "message": "Category with id {} is not recognized".format(category)
             }), 400)
 
         product = products.Products(product_id=product_id, product_price=product_price,
-                                     category=striped_category, inventory=inventory, min_quantity=min_quantity)
+                                     category=category, inventory=inventory, min_quantity=min_quantity)
         product.put()
         return make_response(jsonify({
             "message":"Product updated successfully",

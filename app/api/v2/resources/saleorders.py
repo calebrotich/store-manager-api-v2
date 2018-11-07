@@ -17,7 +17,7 @@ class SaleOrder(Resource):
 
     def post(self):
         """POST /saleorder endpoint"""
-        logged_user = verify.verify_tokens()
+        user_id = verify.verify_tokens()[1]
 
         data = request.get_json()
         common_functions.no_json_in_request(data)
@@ -33,7 +33,7 @@ class SaleOrder(Resource):
                 ), 400))
 
         totalAmount = 0
-        saleorder = saleorders.SaleOrder(amount=totalAmount, made_by=logged_user)
+        saleorder = saleorders.SaleOrder(amount=totalAmount, made_by=user_id)
         saleorder.save()
 
         query = """SELECT saleorder_id from saleorders WHERE amount = 0
@@ -41,7 +41,7 @@ class SaleOrder(Resource):
         saleorder_id = database.select_from_db(query)[0]['saleorder_id']
         for item in items:
             try:
-                product_name = item['product_name']
+                product = item['product']
             except:
                 return make_response(jsonify({
                     "message":"Kindly specify the product you want to buy"
@@ -53,11 +53,11 @@ class SaleOrder(Resource):
                     "message":"Kindly specify the quantity of the product you want"
                 }), 403) 
 
-            if not isinstance(product_name, str):
+            if not isinstance(product, int):
                 rollback_saleorder = saleorders.SaleOrder(saleorder_id=saleorder_id)
                 rollback_saleorder.rollback_saleorder()
                 abort(make_response(jsonify(
-                    message="Please fill the product name as a string"
+                    message="Please select the a product you want to purchase"
                 ), 400))
 
             if not isinstance(quantity, int):
@@ -74,10 +74,10 @@ class SaleOrder(Resource):
                     message="Please have a quantity value over 0"
                 ), 400))
 
-            query = """SELECT * FROM products WHERE product_name = '{}'""".format(product_name)
+            query = """SELECT * FROM products WHERE product_id = '{}'""".format(product)
             product_exists = database.select_from_db(query)
             if product_exists:
-                product_id = product_exists[0]['product_id']
+                product_name = product_exists[0]['product_name']
                 product_price = product_exists[0]['product_price']
                 inventory = product_exists[0]['inventory']
                 if inventory == 0:
@@ -96,17 +96,17 @@ class SaleOrder(Resource):
                      ), 400))                   
 
                 totalAmount += (product_price * quantity)
-                sale_item = saleorders.SaleItems(saleorder_id=saleorder_id, product=product_id, quantity=quantity)
+                sale_item = saleorders.SaleItems(saleorder_id=saleorder_id, product=product, quantity=quantity)
                 sale_item.save()
                 updated_inventory = inventory - quantity
-                product_to_update = products.Products(product_id=product_id ,inventory=updated_inventory)
+                product_to_update = products.Products(product_id=product ,inventory=updated_inventory)
                 product_to_update.deduct_inventory()
 
             if not product_exists:
                 rollback_saleorder = saleorders.SaleOrder(saleorder_id=saleorder_id)
                 rollback_saleorder.rollback_saleorder()
                 return abort(make_response(jsonify({
-                    "message": "{} not available in the store. Processing halted".format(product_name)
+                    "message": "Product with id {} is not available in the store".format(product)
                 }), 404))
 
         update_amount_query = """UPDATE saleorders SET amount = {} WHERE saleorder_id = {}""".format(totalAmount, saleorder_id)

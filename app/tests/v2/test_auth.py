@@ -62,15 +62,16 @@ class TestAuth(base_test.TestBaseClass):
             response)["Message"], "The token is either expired or wrong")
 
     def test_add_new_user(self):
+        token = self.login_test_admin()
+
         res = self.app_test_client.post("api/v2/auth/signup",
         json={
         "email": "test_add_new_user@gmail.com",
         "role": "Admin",
         "password": "Password12#"
         }, 
-        headers={
-        "Content-Type": "application/json"
-        })
+        headers=dict(Authorization=token),
+        content_type='application/json')
 
         data = json.loads(res.data.decode())
         print(data)
@@ -79,114 +80,114 @@ class TestAuth(base_test.TestBaseClass):
         self.assertEqual(res.status_code, 202)
 
     def test_add_new_user_no_data(self):
+        token = self.login_test_admin()
+
         res = self.app_test_client.post("api/v2/auth/signup",
         json={
 
         }, 
-        headers={
-        "Content-Type": "application/json"
-        })
+        headers=dict(Authorization=token),
+        content_type='application/json')
 
         data = json.loads(res.data.decode())
-        print(res)
-
         self.assertEqual(data['message'], "Missing required credentials")
         self.assertEqual(res.status_code, 400)
 
     def test_add_new_user_missing_data(self):
+        token = self.login_test_admin()
         res = self.app_test_client.post("api/v2/auth/signup",
         json={
             "email": "",
             "role": "Admin",
             "password": "Password12#"
              }, 
-        headers={
-            "Content-Type": "application/json"
-            })
+        headers=dict(Authorization=token),
+        content_type='application/json')
 
         data = json.loads(res.data.decode())
         print(data)
 
-        self.assertEqual(data['message'], "You are missing a required credential")
+        self.assertEqual(data['message'], "Please supply a valid email")
         self.assertEqual(res.status_code, 400)
 
     def test_add_new_user_missing_key(self):
+        token = self.login_test_admin()
+
         res = self.app_test_client.post("api/v2/auth/signup",
         json={
             "role": "Admin",
             "password": "Password12#"
              }, 
-        headers={
-            "Content-Type": "application/json"
-            })
+        headers=dict(Authorization=token),
+        content_type='application/json')
 
         data = json.loads(res.data.decode())
         print(data)
 
-        self.assertEqual(data['message'], "Missing required credentials")
+        self.assertEqual(data['message'], "Please supply an email to be able to register an attendant")
         self.assertEqual(res.status_code, 400)
 
     def test_add_new_user_invalid_email(self):
+        token = self.login_test_admin()
+
         res = self.app_test_client.post("api/v2/auth/signup",
         json={
         "email": "test_add_new_user",
         "role": "Admin",
         "password": "Password12#"
         }, 
-        headers={
-        "Content-Type": "application/json"
-        })
+        headers=dict(Authorization=token),
+        content_type='application/json')
 
         data = json.loads(res.data.decode())
         print(data)
 
-        self.assertEqual(data['message'], "Invalid email")
+        self.assertEqual(data['message'], "Please supply a valid email")
         self.assertEqual(res.status_code, 400)
 
     def test_add_new_user_no_digit_password(self):
+        token = self.login_test_admin()
+
         res = self.app_test_client.post("api/v2/auth/signup",
         json={
         "email": "test_add_new_user_invalid_email@gmail.com",
         "role": "Admin",
         "password": "No#digit"
         }, 
-        headers={
-        "Content-Type": "application/json"
-        })
+        headers=dict(Authorization=token),
+        content_type='application/json')
 
         data = json.loads(res.data.decode())
-        print(data)
-
         self.assertEqual(data['message'], "Password must have a digit")
         self.assertEqual(res.status_code, 400)
 
     def test_add_new_user_short_password(self):
+        token = self.login_test_admin()
+
         res = self.app_test_client.post("api/v2/auth/signup",
         json={
         "email": "test_add_new_user_invalid_email@gmail.com",
         "role": "Admin",
         "password": "Shor#"
         }, 
-        headers={
-        "Content-Type": "application/json"
-        })
+        headers=dict(Authorization=token),
+        content_type='application/json')
 
         data = json.loads(res.data.decode())
-        print(data)
-
         self.assertEqual(data['message'], "Password must be long than 6 characters or less than 12")
         self.assertEqual(res.status_code, 400)
 
     def test_add_new_user_no_special_ch_password(self):
+        token = self.login_test_admin()
+
         res = self.app_test_client.post("api/v2/auth/signup",
         json={
         "email": "test_add_new_user_invalid_email@gmail.com",
         "role": "Admin",
         "password": "NoSplCh12"
         }, 
-        headers={
-        "Content-Type": "application/json"
-        })
+        headers=dict(Authorization=token),
+        content_type='application/json')
 
         data = json.loads(res.data.decode())
         print(data)
@@ -195,36 +196,34 @@ class TestAuth(base_test.TestBaseClass):
         self.assertEqual(res.status_code, 400)
 
     def test_add_new_user_no_upper_case_password(self):
+        token = self.login_test_admin()
+
         res = self.app_test_client.post("api/v2/auth/signup",
         json={
         "email": "test_add_new_user_invalid_email@gmail.com",
         "role": "Admin",
         "password": "noupper12#"
         }, 
-        headers={
-        "Content-Type": "application/json"
-        })
+        headers=dict(Authorization=token),
+        content_type='application/json')
 
         data = json.loads(res.data.decode())
-        print(data)
-
         self.assertEqual(data['message'], "Password must have an upper case character")
         self.assertEqual(res.status_code, 400)
 
     def test_add_new_user_no_lower_case_password(self):
+        token = self.login_test_admin()
+
         res = self.app_test_client.post("api/v2/auth/signup",
         json={
         "email": "test_add_new_user_invalid_email@gmail.com",
         "role": "Admin",
         "password": "NOLOWER12#"
         }, 
-        headers={
-        "Content-Type": "application/json"
-        })
+         headers=dict(Authorization=token),
+        content_type='application/json')
 
         data = json.loads(res.data.decode())
-        print(data)
-
         self.assertEqual(data['message'], "Password must have a lower case character")
         self.assertEqual(res.status_code, 400)
 
@@ -294,9 +293,8 @@ class TestAuth(base_test.TestBaseClass):
         "Content-Type": "application/json"
         })
 
-        self.assertTrue(common_functions.convert_response_to_json(
-        resp)['message'], "User not found.")
-        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(common_functions.convert_response_to_json(
+        resp)['message'], "Try again. E-mail or password is incorrect!")
 
     def test_abort_if_user_is_not_admin(self):
         self.register_test_admin_account()

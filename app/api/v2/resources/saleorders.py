@@ -44,13 +44,13 @@ class SaleOrder(Resource):
                 product_name = item['product_name']
             except:
                 return make_response(jsonify({
-                    "message":"Product name missing"
+                    "message":"Kindly specify the product you want to buy"
                 }), 403)            
             try:
                 quantity = item['quantity']
             except:
                 return make_response(jsonify({
-                    "message":"Product name missing"
+                    "message":"Kindly specify the quantity of the product you want"
                 }), 403) 
 
             if not isinstance(product_name, str):

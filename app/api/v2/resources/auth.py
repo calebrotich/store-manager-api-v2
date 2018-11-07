@@ -56,7 +56,7 @@ class SignUp(Resource):
         Validator.validate_credentials(self, data)
         Validator.check_duplication("email", "users", email)
         hashed_password = generate_password_hash(request_password, method='sha256')
-        user = users.User_Model(email, hashed_password, "admin")
+        user = users.User_Model(email, hashed_password, "attendant")
         user.save()
         return make_response(jsonify({
             "message": "Account created successfully",
@@ -124,6 +124,50 @@ class Login(Resource):
         }
         ), 403)
 
+class SignUpAdmin(Resource):
+    """Signup class"""
+
+    def post(self):
+        """POST /auth/login/admin"""
+        data = request.get_json()
+        if not data:
+            return make_response(jsonify({
+                                    "message": "Missing required credentials"
+                                    }), 400)
+
+        try:
+            email = data["email"]
+        except KeyError:
+            return make_response(jsonify({
+                        "message": "Please supply an email to be able to register an attendant"
+                        }), 400)
+
+        try:
+            request_password = data["password"]
+        except KeyError:
+            return make_response(jsonify({
+                        "message": "Please supply a password to be able to register an attendant"
+                        }), 400)  
+        if not isinstance(data["email"], str):
+            return make_response(jsonify({
+                        "message": "Email should be a string"
+                        }), 400)   
+        if not isinstance(data["password"], str):
+            return make_response(jsonify({
+                        "message": "Password should be a string"
+                        }), 400)
+        Validator.validate_credentials(self, data)
+        Validator.check_duplication("email", "users", email)
+        hashed_password = generate_password_hash(request_password, method='sha256')
+        user = users.User_Model(email, hashed_password, "admin")
+        user.save()
+        return make_response(jsonify({
+            "message": "Account created successfully",
+            "user": {
+                "email": email,
+                "role": "admin"
+            }
+        }), 202)
 
 class Logout(Resource):
     """Logout class"""

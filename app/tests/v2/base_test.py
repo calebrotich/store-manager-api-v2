@@ -74,7 +74,7 @@ class TestBaseClass(unittest.TestCase):
         #Register admin
         """Registers an admin test user account"""
             
-        res = self.app_test_client.post("api/v2/auth/signup",
+        res = self.app_test_client.post("api/v2/auth/signup/admin",
         json={
         "email": "user@gmail.com",
         "role": "admin",
@@ -89,16 +89,16 @@ class TestBaseClass(unittest.TestCase):
     def register_test_attendant_account(self):
         #Register attendant
         """Registers an attendant test user account"""
-            
+        token = self.login_test_admin()
         res = self.app_test_client.post("api/v2/auth/signup",
         json={
         "email": "attendant@gmail.com",
         "role": "attendant",
         "password": "Password12#"
         }, 
-        headers={
-        "Content-Type": "application/json"
-        })
+        headers=dict(Authorization=token),
+        content_type='application/json'
+        )
 
         return res
     

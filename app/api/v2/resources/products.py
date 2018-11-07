@@ -58,7 +58,7 @@ class Product(Resource):
                         "message": "Please define the minimum quantity"
                         }), 400) 
         product_name = req_product_name.strip()
-        category = req_category.strip()
+        category = req_category
         query = """SELECT category_name from category WHERE category_name = '{}'""".format(category)
         category_exist = database.select_from_db(query)
         if not category_exist:
@@ -81,8 +81,6 @@ class Product(Resource):
                 "category": category
             }
         }), 201)
-
-
 
     def get(self):
         """GET /products endpoint"""

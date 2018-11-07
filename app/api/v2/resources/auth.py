@@ -139,14 +139,14 @@ class SignUpAdmin(Resource):
             email = data["email"]
         except KeyError:
             return make_response(jsonify({
-                        "message": "Please supply an email to be able to register an attendant"
+                        "message": "Please supply an email to be able to register an admin"
                         }), 400)
 
         try:
             request_password = data["password"]
         except KeyError:
             return make_response(jsonify({
-                        "message": "Please supply a password to be able to register an attendant"
+                        "message": "Please supply a password to be able to register an admin"
                         }), 400)  
         if not isinstance(data["email"], str):
             return make_response(jsonify({

@@ -1,6 +1,6 @@
 # store-manager-api-v2
 #### Continous Integration badges
-[![Build Status](https://travis-ci.com/calebrotich10/store-manager-api-v2.svg?branch=develop)](https://travis-ci.com/calebrotich10/store-manager-api-v2)  [![Coverage Status](https://coveralls.io/repos/github/calebrotich10/store-manager-api-v2/badge.svg?branch=develop)](https://coveralls.io/github/calebrotich10/store-manager-api-v2?branch=develop)  [![Maintainability](https://api.codeclimate.com/v1/badges/94613d7438838aeb23d5/maintainability)](https://codeclimate.com/github/calebrotich10/store-manager-api-v2/maintainability)
+[![Build Status](https://travis-ci.com/calebrotich10/store-manager-api-v2.svg?branch=develop)](https://travis-ci.com/calebrotich10/store-manager-api-v2)  [![Coverage Status](https://coveralls.io/repos/github/calebrotich10/store-manager-api-v2/badge.svg?branch=develop)](https://coveralls.io/github/calebrotich10/store-manager-api-v2?branch=develop)  [![Maintainability](https://api.codeclimate.com/v1/badges/94613d7438838aeb23d5/maintainability)](https://codeclimate.com/github/calebrotich10/store-manager-api-v2/maintainability) [![PEP8](https://img.shields.io/badge/code%20style-pep8-orange.svg)](https://www.python.org/dev/peps/pep-0008/) <img src="https://camo.githubusercontent.com/b0224997019dec4e51d692c722ea9bee2818c837/68747470733a2f2f696d672e736869656c64732e696f2f6769746875622f6c6963656e73652f6d6173686170652f6170697374617475732e737667" alt="license" data-canonical-src="https://img.shields.io/github/license/mashape/apistatus.svg" style="max-width:100%;">
 
 Store Manager is a web application that helps store owners manage sales and product inventory records. This application is meant for use in a single store. This repository contains the API endpoints for the application and has data persisted using Postgres database
 
@@ -68,13 +68,18 @@ Store Manager is a web application that helps store owners manage sales and prod
   </tr>
    <tr>
     <td>PUT</td>
-    <td>api/v2/category/<id:category_id></td>
+    <td>api/v2/category/&ltid:category_id&gt</td>
     <td>Enables a user to update a category</td>
   </tr>
   <tr>
     <td>DELETE</td>
-    <td>api/v2/category<int:category_id></td>
+    <td>api/v2/category&ltint:category_id&gt</td>
     <td>Enables a user to delete a category</td>
+  </tr>
+    <tr>
+    <td>DELETE</td>
+    <td>api/v2/product&ltint:product_id&gt</td>
+    <td>Enables a user to delete a product</td>
   </tr>
    <tr>
     <td>POST</td>
@@ -105,6 +110,11 @@ Inside the virtual environment created above, run command:
 
 #### Deployment
 [Heroku](https://store-manager-api-v2.herokuapp.com/)
+
+#### Documentation
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/94941bd850bf15c7d80c)
+
+[Postman documenter](https://web.postman.co/collections/5265531-086697fb-a305-420f-9385-5051bc385d0a?workspace=90ac61c2-8d86-4603-8151-f07f6a58b68b)
 
 #### Author
 [Caleb Rotich](https://github.com/calebrotich10)

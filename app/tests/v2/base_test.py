@@ -51,6 +51,8 @@ class TestBaseClass(unittest.TestCase):
         ]
         }
 
+        self.token = self.login_test_admin()
+
 
     def tearDown(self):
         """Destroy the application that

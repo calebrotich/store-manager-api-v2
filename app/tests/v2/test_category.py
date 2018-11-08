@@ -31,6 +31,17 @@ class TestCategory(base_test.TestBaseClass):
         self.assertEqual(common_functions.convert_response_to_json(
             response)["message"], "Please provide a name for the category")
 
+    def test_post_category_name_not_string(self):
+        """POST /category - Category name not string"""
+        response = self.app_test_client.post('{}/category'.format(
+            self.BASE_URL), json={
+                'category_name': 3
+            }, headers=dict(Authorization=self.token),
+            content_type='application/json')
+
+        self.assertEqual(response.status_code, 406)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)["message"], "Category name should be a string")
 
     def test_get_all_categories(self):
         query = """INSERT INTO category(category_name) VALUES('Accessories')"""
@@ -129,3 +140,14 @@ class TestCategory(base_test.TestBaseClass):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(common_functions.convert_response_to_json(
             response)['message'], "Category deleted successfully")
+
+    def test_delete_category_not_found(self):
+        """DELETE /category/id - category not found"""
+        response = self.app_test_client.delete('{}/category/100'.format(
+            self.BASE_URL),
+            headers=dict(Authorization=self.token),
+            content_type='application/json')
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)['message'], "No need for that. Category with id 100 does not exist")

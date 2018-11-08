@@ -48,7 +48,6 @@ class TestSaleOrder(base_test.TestBaseClass):
             response)['message'], 'Kindly specify the quantity of the product you want')
 
 
-
     def test_create_sale_order_invalid_product_value(self):
         """Test POST /saleorder
 
@@ -88,6 +87,19 @@ class TestSaleOrder(base_test.TestBaseClass):
         self.assertEqual(common_functions.convert_response_to_json(
             response)['message'], 'The value should be a list of dictionaries')
 
+    def test_create_sale_order_items_key_missing(self):
+        """Test POST /saleorder
+
+        with the product name not a string
+        """
+        response = self.app_test_client.post('{}/saleorder'.format(
+            self.BASE_URL), json={},
+            headers=dict(Authorization=self.token),
+            content_type='application/json')
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(common_functions.convert_response_to_json(
+            response)['message'], 'list of items missing')
 
     def test_create_sale_order_quantity_not_digits(self):
         """Test POST /saleorder

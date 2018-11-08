@@ -50,14 +50,3 @@ class SaleItems():
         )""".format(self.saleorder_id, self.product, self.quantity)
 
         database.insert_to_db(query)
-
-    def get(self):
-        """
-            Queries db for user with given username
-            Returns user object
-        """
-        # Query db for user with those params
-        query = """
-        SELECT * FROM saleorders"""
-
-        return database.select_from_db(query)

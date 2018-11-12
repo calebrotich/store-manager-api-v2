@@ -176,11 +176,10 @@ class Logout(Resource):
     def post(self):
         """POST /auth/logout"""
         
-        logged_user = verify.verify_tokens()[0]
         token = request.headers['Authorization']
         user = users.User_Model(token=token)
         user.logout()
 
         return make_response(jsonify({
-            'message': '{} Logged out successfully'.format(logged_user)
+            'message': 'User Logged out successfully'
         }))

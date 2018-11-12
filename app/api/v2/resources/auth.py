@@ -117,7 +117,8 @@ class Login(Resource):
             }, os.getenv('JWT_SECRET_KEY', default='SdaHv342nx!jknr837bjwd?c,lsajjjhw673hdsbgeh'))
             return make_response(jsonify({
                             "message": "Login successful",
-                            "token": token.decode("UTF-8")}), 200)
+                            "token": token.decode("UTF-8"),
+                            "role": user[0]['role']}), 200)
 
         return make_response(jsonify({
             "message": "Try again. E-mail or password is incorrect!"

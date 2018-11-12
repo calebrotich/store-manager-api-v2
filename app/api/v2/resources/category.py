@@ -17,7 +17,7 @@ class ProductCategory(Resource):
         """POST /category endpoint"""
 
         # Token verification and admin user determination
-        logged_user = verify.verify_tokens()
+        logged_user = verify.verify_tokens()[0]
         common_functions.abort_if_user_is_not_admin(logged_user)
         
         data = request.get_json()
@@ -50,7 +50,7 @@ class ProductCategory(Resource):
 
     def get(self):
         """GET /category"""
-        logged_user = verify.verify_tokens()
+        logged_user = verify.verify_tokens()[0]
         common_functions.abort_if_user_is_not_admin(logged_user)
         fetch_category = category.Category()
         fetched_categories = fetch_category.get()
@@ -74,7 +74,7 @@ class SpecificCategory(Resource):
     def put(self, category_id):
         """PUT /product/<int:product_id> endpoint"""
 
-        logged_user = verify.verify_tokens()
+        logged_user = verify.verify_tokens()[0]
         common_functions.abort_if_user_is_not_admin(logged_user)
 
         data = request.get_json()
@@ -106,7 +106,7 @@ class SpecificCategory(Resource):
 
 
     def delete(self, category_id):
-        logged_user = verify.verify_tokens()
+        logged_user = verify.verify_tokens()[0]
         common_functions.abort_if_user_is_not_admin(logged_user)
         query="""SELECT * FROM category WHERE category_id = {}""".format(category_id)
         cat_exists = database.select_from_db(query)

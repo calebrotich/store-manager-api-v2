@@ -61,8 +61,8 @@ def create_tables():
         product_price INTEGER NOT NULL,
         min_quantity INTEGER NOT NULL,
         inventory INTEGER NOT NULL,
-        added_by VARCHAR (30) NOT NULL REFERENCES users(email) ON DELETE CASCADE,
-        category VARCHAR (24) NOT NULL REFERENCES category(category_name) ON DELETE CASCADE
+        added_by INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+        category INTEGER NOT NULL REFERENCES category(category_id) ON DELETE CASCADE
     )"""
 
     sales_order_query = """
@@ -70,7 +70,7 @@ def create_tables():
         saleorder_id SERIAL PRIMARY KEY,
         date_ordered TIMESTAMP DEFAULT NOW(),
         amount INTEGER NOT NULL,
-        made_by VARCHAR (30) NOT NULL REFERENCES users(email) ON DELETE CASCADE
+        made_by INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE
     )"""
 
     sale_items_query = """

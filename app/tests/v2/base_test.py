@@ -33,19 +33,21 @@ class TestBaseClass(unittest.TestCase):
             self.db_url = config['test_db_url']
             init_db(self.db_url)
 
+        self.token = self.login_test_admin()
+        self.category_id = self.create_product_category()
+
         self.PRODUCT = {
         'product_name': 'Phone Model 1',
         'product_price': 55000,
         'min_quantity': 10,
         'inventory': 50,
-        'added_by': 'user@gmail.com',
-        'category': self.create_product_category()
+        'category': self.category_id
         }
 
         self.SALE_ORDERS = {
         'items': [
             {
-                'product_name': 'Phone Model 1',
+                'product': 1,
                 'quantity': 2
             }
         ]
@@ -66,9 +68,9 @@ class TestBaseClass(unittest.TestCase):
         database.insert_to_db(query)
 
         fetch_query = """SELECT * FROM category WHERE category_name = 'Tools'"""
-        category_name = database.select_from_db(fetch_query)
+        category_id = database.select_from_db(fetch_query)
 
-        return category_name[0]['category_name']
+        return category_id[0]['category_id']
 
     def register_test_admin_account(self):
         #Register admin

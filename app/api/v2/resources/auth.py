@@ -24,7 +24,7 @@ class SignUp(Resource):
 
     def post(self):
         """POST /auth/login"""
-        logged_user = verify.verify_tokens()
+        logged_user = verify.verify_tokens()[0]
         common_functions.abort_if_user_is_not_admin(logged_user)
         data = request.get_json()
         if not data:
@@ -113,6 +113,7 @@ class Login(Resource):
         if user and request_email == user[0]['email'] and check_password_hash(user[0]['password'], request_password):
             token = jwt.encode({
                 "email": request_email,
+                "user_id": user[0]['user_id'],
                 "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=3000)
             }, os.getenv('JWT_SECRET_KEY', default='SdaHv342nx!jknr837bjwd?c,lsajjjhw673hdsbgeh'))
             return make_response(jsonify({
@@ -176,11 +177,10 @@ class Logout(Resource):
     def post(self):
         """POST /auth/logout"""
         
-        logged_user = verify.verify_tokens()
         token = request.headers['Authorization']
         user = users.User_Model(token=token)
         user.logout()
 
         return make_response(jsonify({
-            'message': '{} Logged out successfully'.format(logged_user)
+            'message': 'User Logged out successfully'
         }))

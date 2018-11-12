@@ -28,7 +28,7 @@ class Production(Config):
     """Configurations for Production."""
     DEBUG = False
     TESTING = False
-    DB_URL = "postgres://uiucbnlliwkcmi:adc815dab4a8e7a71ca743d991376069d1358f224bb33658631a0099d3732f3a@ec2-75-101-138-26.compute-1.amazonaws.com:5432/d3a20o9lhegqmt"
+    DB_URL = "postgres://enkpqtcmagriuy:0f421ed7d1810f57d38459c07ab9cbe4f0195e5e885666285c96bc4e82da14e5@ec2-174-129-212-12.compute-1.amazonaws.com:5432/d7mdvc21nohe4q"
 
 config = {
     'development': Development,

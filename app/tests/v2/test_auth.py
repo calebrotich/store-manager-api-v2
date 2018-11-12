@@ -372,7 +372,7 @@ class TestAuth(base_test.TestBaseClass):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(common_functions.convert_response_to_json(
-            response)['message'], "user@gmail.com Logged out successfully"
+            response)['message'], "User Logged out successfully"
         )
 
     def test_add_new_admin_user(self):

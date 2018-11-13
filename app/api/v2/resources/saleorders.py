@@ -39,6 +39,7 @@ class SaleOrder(Resource):
         query = """SELECT saleorder_id from saleorders WHERE amount = 0
         """
         saleorder_id = database.select_from_db(query)[0]['saleorder_id']
+        items_sold = []
         for item in items:
             try:
                 product = item['product']
@@ -93,9 +94,17 @@ class SaleOrder(Resource):
 
                      return abort(make_response(jsonify(
                      message="Our current stock cannot serve an order of {}. You can currently order a maximum of {} for the product '{}'".format(quantity, inventory, product_name)
-                     ), 400))                   
-
-                totalAmount += (product_price * quantity)
+                     ), 400))
+                
+                product_amount = product_price * quantity
+                current_item = {
+                    "product": product_exists[0]['product_name'],
+                    "quantity": quantity,
+                    "price": product_exists[0]['product_price'],
+                    "product_amount": product_amount
+                }
+                items_sold.append(current_item)
+                totalAmount += product_amount
                 sale_item = saleorders.SaleItems(saleorder_id=saleorder_id, product=product, quantity=quantity)
                 sale_item.save()
                 updated_inventory = inventory - quantity
@@ -114,7 +123,7 @@ class SaleOrder(Resource):
 
         return make_response(jsonify({
             "message": "Checkout complete",
-            "items_sold": items,
+            "items_sold": items_sold,
             "total_amount": totalAmount
         }), 201)
 

@@ -97,19 +97,20 @@ class SaleOrder(Resource):
                      ), 400))
                 
                 product_amount = product_price * quantity
-                current_item = {
-                    "product": product_exists[0]['product_name'],
-                    "quantity": quantity,
-                    "price": product_exists[0]['product_price'],
-                    "product_amount": product_amount
-                }
-                items_sold.append(current_item)
                 totalAmount += product_amount
                 sale_item = saleorders.SaleItems(saleorder_id=saleorder_id, product=product, quantity=quantity)
                 sale_item.save()
                 updated_inventory = inventory - quantity
                 product_to_update = products.Products(product_id=product ,inventory=updated_inventory)
                 product_to_update.deduct_inventory()
+                current_item = {
+                    "product": product_exists[0]['product_name'],
+                    "quantity": quantity,
+                    "price": product_exists[0]['product_price'],
+                    "product_amount": product_amount,
+                    "remaining_stock": updated_inventory
+                }
+                items_sold.append(current_item)
 
             if not product_exists:
                 rollback_saleorder = saleorders.SaleOrder(saleorder_id=saleorder_id)
